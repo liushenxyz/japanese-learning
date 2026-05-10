@@ -180,6 +180,10 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .vt-ex-spk:hover { background: var(--accent-light); color: var(--accent); border-color: rgba(45,90,61,.2); }
 .vt-done-mark { font-size: 12px; color: var(--accent); margin-right: 4px; }
 .vt-ok { font-size: 12px; color: var(--accent); font-weight: 600; margin-right: 4px; }
+.vt-batch { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 8px; white-space: nowrap; }
+.vt-batch.b1 { background: var(--accent-light); color: var(--accent); }
+.vt-batch.b2 { background: var(--blue-light); color: var(--blue); }
+.vt-batch.bm { background: var(--gold-light); color: var(--gold); }
 .empty { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 14px; }
 
 /* upload */
@@ -275,12 +279,15 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   .lf-btn { height: 30px; padding: 0 10px; font-size: 11px; }
 
   /* vocab table → hide less-important columns on mobile */
-  .vtable th:nth-child(3),
-  .vtable td:nth-child(3),
-  .vtable th:nth-child(5),
-  .vtable td:nth-child(5),
+  /* cols: 1=# 2=汉字 3=译文 4=词性 5=等级 6=批次 7=出现 8=发音 9=例句 */
+  .vtable th:nth-child(4),
+  .vtable td:nth-child(4),
+  .vtable th:nth-child(6),
+  .vtable td:nth-child(6),
   .vtable th:nth-child(7),
-  .vtable td:nth-child(7) { display: none; }
+  .vtable td:nth-child(7),
+  .vtable th:nth-child(9),
+  .vtable td:nth-child(9) { display: none; }
 
   .vt-kanji { font-size: 15px; }
   .vt-kana { font-size: 11px; }
@@ -413,10 +420,12 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
     <table class="vtable">
       <thead>
         <tr>
+          <th style="width:40px;text-align:center">#</th>
           <th>汉字</th>
           <th>译文</th>
           <th>词性</th>
           <th>等级</th>
+          <th>批次</th>
           <th>出现</th>
           <th>发音</th>
           <th>例句</th>
@@ -788,7 +797,7 @@ function renderList() {
     return;
   }
   if(!document.getElementById('vtbody')){
-    wrap.innerHTML=`<table class="vtable"><thead><tr><th>汉字</th><th>译文</th><th>词性</th><th>等级</th><th>出现</th><th>发音</th><th>例句</th></tr></thead><tbody id="vtbody"></tbody></table>`;
+    wrap.innerHTML=`<table class="vtable"><thead><tr><th style="width:40px;text-align:center">#</th><th>汉字</th><th>译文</th><th>词性</th><th>等级</th><th>批次</th><th>出现</th><th>发音</th><th>例句</th></tr></thead><tbody id="vtbody"></tbody></table>`;
   }
   document.getElementById('vtbody').innerHTML=src.map(w=>{
     const lv=lvStyle[w.level]||'';
@@ -800,15 +809,23 @@ function renderList() {
       ? `<span style="display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:600;background:var(--gold-light);color:var(--gold);border:1px solid rgba(122,94,24,.2);padding:2px 7px;border-radius:12px">⭐ ${cnt}次</span>`
       : `<span style="font-size:12px;color:var(--text3)">${cnt}次</span>`;
     return `<tr class="${done?'vt-done':''}" onclick="jumpStudy(${w.id})" title="点击进入卡片学习">
+      <td style="text-align:center;color:var(--text3);font-size:12px;font-family:'DM Mono',monospace">${w.id}</td>
       <td><div style="display:flex;align-items:center;gap:4px">${done?'<span class="vt-ok">✓</span>':''}<div><div class="vt-kanji">${w.kanji}</div><div class="vt-kana">${w.kana}</div></div></div></td>
       <td class="vt-trans">${w.trans}</td>
       <td class="vt-pos">${w.pos}</td>
       <td><span class="vt-lv" style="${lv}">${(w.level||'').toUpperCase()}</span></td>
+      <td>${getBatch(w.src)}</td>
       <td style="text-align:center">${cntBadge}</td>
       <td><button class="vt-spk" onclick="event.stopPropagation();speak('${kanaSafe}')" title="朗读单词">🔊</button></td>
       <td><div class="vt-ex"><div class="vt-ex-jp">${w.ex_jp||''}</div><div style="color:var(--text3);font-size:11px;margin-top:1px">${w.ex_zh||''}</div><button class="vt-ex-spk" onclick="event.stopPropagation();speak('${exJpSafe}')">🔊 例句发音</button></div></td>
     </tr>`;
   }).join('');
+}
+function getBatch(src) {
+  if (!src) return '<span style="color:var(--text3);font-size:11px">—</span>';
+  if (src.includes('第2回')) return '<span class="vt-batch b2">第2回</span>';
+  if (src.includes('混淆')) return '<span class="vt-batch bm">混淆</span>';
+  return '<span class="vt-batch b1">第1回</span>';
 }
 function doSearch(q){ listSearch=q; renderList(); }
 function setLF(f,btn){ listLF=f; document.querySelectorAll('.lf-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderList(); }
