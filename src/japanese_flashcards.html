@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日語単語帳</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=DM+Mono:ital,wght@0,300;1,300&display=swap');
+
+:root {
+  --bg: #f4f2ed;
+  --surface: #ffffff;
+  --surface2: #f0ede7;
+  --border: rgba(0,0,0,0.07);
+  --border2: rgba(0,0,0,0.13);
+  --text: #1c1917;
+  --text2: #6b6560;
+  --text3: #a09b94;
+  --accent: #2d5a3d;
+  --accent-h: #234831;
+  --accent-light: #e7f2eb;
+  --red: #8b3a2a;
+  --red-light: #fdf0ec;
+  --gold: #7a5e18;
+  --gold-light: #fdf7e4;
+  --blue: #1c4478;
+  --blue-light: #e6f0fa;
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.05);
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.07);
+  --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 24px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* topbar */
+.topbar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 14px; position: sticky; top: 0; z-index: 100; }
+.logo { font-family: 'Noto Sans JP', sans-serif; font-size: 16px; font-weight: 700; color: var(--accent); letter-spacing: .03em; }
+.tsep { flex: 1; }
+.stat-badge { font-size: 11px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+.pill { background: var(--accent-light); color: var(--accent); font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 20px; }
+
+/* subtabs */
+.subtabs { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; padding: 0 20px; }
+.stab { font-size: 13px; font-weight: 500; padding: 11px 16px; border: none; background: none; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+.stab:hover { color: var(--text2); }
+.stab.on { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-panel { display: none; }
+.tab-panel.on { display: block; }
+
+/* study layout */
+.study-page { max-width: 760px; margin: 0 auto; padding: 20px 20px 52px; display: flex; flex-direction: column; gap: 14px; }
+
+/* progress row */
+.prog-row { display: flex; align-items: center; gap: 10px; }
+.prog-counter { font-size: 13px; color: var(--text2); font-weight: 500; white-space: nowrap; }
+.prog-bar { flex: 1; height: 3px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .35s ease; }
+.mode-btns { display: flex; gap: 6px; }
+.mode-btn { height: 32px; padding: 0 14px; border-radius: var(--r-sm); border: 1px solid var(--border2); background: var(--surface); font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text2); font-family: 'Noto Sans JP', sans-serif; display: flex; align-items: center; gap: 4px; transition: all .15s; }
+.mode-btn:hover { background: var(--surface2); }
+.mode-btn.on { background: var(--text); color: white; border-color: var(--text); }
+
+/* pos filter */
+.pos-filter { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pos-label { font-size: 12px; color: var(--text3); white-space: nowrap; }
+.pos-btn { height: 34px; padding: 0 16px; border-radius: 100px; border: 1px solid var(--border2); background: var(--surface); font-size: 13px; cursor: pointer; color: var(--text2); font-family: 'Noto Sans JP', sans-serif; transition: all .15s; white-space: nowrap; }
+.pos-btn:hover { background: var(--surface2); }
+.pos-btn.on { background: var(--text); color: white; border-color: var(--text); font-weight: 500; }
+
+/* card */
+.card-scene { width: 100%; perspective: 1200px; cursor: pointer; }
+.card-3d { width: 100%; position: relative; transform-style: preserve-3d; transition: transform .5s cubic-bezier(.4,0,.2,1); }
+.card-3d.flipped { transform: rotateY(180deg); }
+.card-face { position: absolute; inset: 0; border-radius: var(--r-xl); backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden; }
+
+/* front */
+.cf { background: var(--surface); border: 1px solid var(--border2); box-shadow: var(--shadow-card); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 52px 36px 68px; position: relative; }
+.cf-hint { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--text3); white-space: nowrap; }
+.cf-source { position: absolute; top: 20px; left: 22px; font-size: 10px; color: var(--text3); letter-spacing: .06em; }
+.cf-pos-badge { font-size: 12px; font-weight: 400; padding: 4px 14px; border-radius: 20px; background: #ede8ff; color: #4c35b5; }
+.cf-kanji { font-family: 'Noto Sans JP', sans-serif; font-size: 72px; font-weight: 400; color: var(--text); line-height: 1.15; text-align: center; letter-spacing: .02em; }
+.cf-kana { font-size: 22px; color: #3d8b60; font-weight: 500; letter-spacing: .06em; margin-top: 2px; }
+.cf-roman { font-family: 'DM Mono', monospace; font-style: italic; font-size: 13px; color: var(--text3); font-weight: 300; margin-top: -4px; }
+.cf-audio { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border2); background: var(--surface2); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.cf-audio:hover { background: var(--accent-light); transform: scale(1.07); }
+.cf-audio.spin { animation: pulse .6s; background: var(--accent); }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.18)} }
+
+/* back */
+.cb { background: var(--surface); transform: rotateY(180deg); display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border2); box-shadow: var(--shadow-card); }
+.cb-top { padding: 22px 26px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 12px; }
+.cb-trans-wrap { flex: 1; }
+.cb-trans { font-family: 'Noto Sans JP', sans-serif; font-size: 26px; font-weight: 500; color: var(--text); line-height: 1.4; }
+.cb-pos-lbl { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.cb-spk { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--border2); background: var(--surface2); cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all .15s; margin-top: 4px; }
+.cb-spk:hover { background: var(--accent-light); }
+.cb-spk.spin { animation: pulse .6s; }
+.cb-scroll { flex: 1; overflow-y: auto; padding: 16px 26px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+/* example */
+.ex-block { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-md); padding: 16px 18px; }
+.ex-lbl { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+.ex-jp { font-size: 15px; color: #2d6e4a; font-weight: 500; line-height: 1.85; margin-bottom: 6px; }
+.ex-kana { font-size: 13px; color: var(--text2); line-height: 1.85; margin-bottom: 4px; }
+.ex-roman { font-family: 'DM Mono', monospace; font-style: italic; font-size: 11px; font-weight: 300; color: var(--text3); margin-bottom: 12px; }
+.ex-audio-row { display: flex; align-items: center; gap: 10px; }
+.ex-spk-btn { display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 12px; border-radius: 20px; border: 1px solid var(--border2); background: var(--surface); color: var(--text2); font-size: 11px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; transition: all .15s; flex-shrink: 0; }
+.ex-spk-btn:hover { background: var(--accent-light); color: var(--accent); border-color: rgba(45,90,61,.2); }
+.ex-zh { font-size: 12px; color: var(--text3); }
+
+/* grammar */
+.gm-block { background: #f0f7f2; border: 1px solid rgba(45,90,61,.15); border-radius: var(--r-md); padding: 12px 14px; }
+.gm-lbl { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
+.gm-text { font-size: 12px; color: var(--text2); line-height: 1.8; }
+.grammar-tag { font-size: 10px; font-weight: 500; padding: 1px 6px; border-radius: 4px; display: inline-block; margin-right: 4px; vertical-align: middle; }
+.grammar-tag.n5 { background: #fdf7e4; color: #7a5e18; }
+.grammar-tag.n4 { background: #e6f0fa; color: #1c4478; }
+.grammar-tag.n3 { background: #e7f2eb; color: #2d5a3d; }
+.grammar-tag.n2 { background: #fdf0ec; color: #8b3a2a; }
+.grammar-tag.n1 { background: #f3edf8; color: #5a2d7a; }
+
+/* card height (set via JS after render) */
+.card-scene { min-height: 340px; }
+.card-scene .card-3d { min-height: 340px; }
+
+/* bottom */
+.card-bottom { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.nav-row { display: flex; align-items: center; gap: 10px; }
+.nav-btn { height: 44px; padding: 0 24px; border-radius: 100px; border: 1px solid var(--border2); background: var(--surface); font-size: 14px; cursor: pointer; color: var(--text2); font-family: 'Noto Sans JP', sans-serif; font-weight: 500; display: flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm); transition: all .15s; }
+.nav-btn:hover { background: var(--surface2); }
+.nav-btn:disabled { opacity: .28; cursor: not-allowed; }
+.rate-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.rate-label { font-size: 11px; color: var(--text3); }
+.rate-btn { height: 34px; padding: 0 16px; border-radius: 100px; border: 1px solid var(--border2); font-size: 12px; font-weight: 500; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; transition: all .15s; }
+.rate-btn.again { background: var(--red-light); color: var(--red); border-color: rgba(139,58,42,.2); }
+.rate-btn.again:hover { background: var(--red); color: white; }
+.rate-btn.hard { background: var(--gold-light); color: var(--gold); border-color: rgba(122,94,24,.2); }
+.rate-btn.hard:hover { background: var(--gold); color: white; }
+.rate-btn.ok { background: var(--blue-light); color: var(--blue); border-color: rgba(28,68,120,.2); }
+.rate-btn.ok:hover { background: var(--blue); color: white; }
+.rate-btn.easy { background: var(--accent-light); color: var(--accent); border-color: rgba(45,90,61,.2); }
+.rate-btn.easy:hover { background: var(--accent); color: white; }
+
+/* quiz */
+.quiz-choices { display: none; flex-direction: column; gap: 8px; }
+.quiz-choices.show { display: flex; }
+.qc-btn { height: 46px; border-radius: var(--r-sm); border: 1px solid var(--border2); background: var(--surface); font-size: 14px; cursor: pointer; color: var(--text); font-family: 'Noto Sans JP', sans-serif; font-weight: 400; text-align: left; padding: 0 18px; transition: all .15s; }
+.qc-btn:hover { background: var(--surface2); border-color: var(--border2); }
+.qc-btn.correct { background: var(--accent-light); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+.qc-btn.wrong { background: var(--red-light); border-color: var(--red); color: var(--red); }
+
+/* list — table layout */
+.list-page { max-width: 1100px; margin: 0 auto; padding: 20px; }
+.list-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.search-box { flex: 1; min-width: 160px; height: 36px; border-radius: var(--r-sm); border: 1px solid var(--border2); background: var(--surface); padding: 0 12px; font-size: 13px; color: var(--text); font-family: 'Noto Sans JP', sans-serif; outline: none; transition: border-color .15s; }
+.search-box:focus { border-color: var(--accent); }
+.lf-btn { height: 32px; padding: 0 12px; border-radius: 100px; border: 1px solid var(--border2); background: var(--surface); font-size: 12px; cursor: pointer; color: var(--text2); font-family: 'Noto Sans JP', sans-serif; transition: all .15s; }
+.lf-btn:hover, .lf-btn.on { background: var(--accent); color: white; border-color: var(--accent); }
+
+.vtable-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; }
+.vtable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.vtable thead tr { background: var(--surface2); border-bottom: 1px solid var(--border2); }
+.vtable th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 500; color: var(--text3); letter-spacing: .05em; white-space: nowrap; }
+.vtable tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; cursor: pointer; }
+.vtable tbody tr:last-child { border-bottom: none; }
+.vtable tbody tr:hover { background: var(--surface2); }
+.vtable tbody tr.vt-done { opacity: .42; }
+.vtable td { padding: 13px 14px; vertical-align: middle; }
+
+.vt-kanji { font-family: 'Noto Sans JP', sans-serif; font-size: 18px; font-weight: 400; color: var(--text); white-space: nowrap; }
+.vt-kana { font-size: 12px; color: #3d8b60; font-weight: 500; margin-top: 2px; white-space: nowrap; }
+.vt-trans { color: var(--text); font-size: 13px; }
+.vt-pos { font-size: 11px; color: var(--text2); white-space: nowrap; }
+.vt-lv { display: inline-block; font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 8px; white-space: nowrap; }
+.vt-spk { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border2); background: var(--surface2); cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all .12s; }
+.vt-spk:hover { background: var(--accent-light); }
+.vt-ex { font-size: 12px; color: var(--text2); line-height: 1.6; max-width: 260px; }
+.vt-ex-jp { color: #2d6e4a; font-weight: 500; margin-bottom: 1px; }
+.vt-ex-spk { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 12px; border: 1px solid var(--border2); background: var(--surface); color: var(--text3); font-size: 10px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; transition: all .12s; margin-top: 4px; white-space: nowrap; }
+.vt-ex-spk:hover { background: var(--accent-light); color: var(--accent); border-color: rgba(45,90,61,.2); }
+.vt-done-mark { font-size: 12px; color: var(--accent); margin-right: 4px; }
+.vt-ok { font-size: 12px; color: var(--accent); font-weight: 600; margin-right: 4px; }
+.empty { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 14px; }
+
+/* upload */
+.upload-page { max-width: 680px; margin: 0 auto; padding: 20px 20px 60px; display: flex; flex-direction: column; gap: 18px; }
+.dropzone { border: 2px dashed var(--border2); border-radius: var(--r-lg); padding: 52px 32px; text-align: center; cursor: pointer; background: var(--surface); transition: all .2s; }
+.dropzone:hover, .dropzone.drag { border-color: var(--accent); background: var(--accent-light); }
+.dz-icon { font-size: 36px; margin-bottom: 10px; }
+.dz-title { font-size: 15px; font-weight: 500; margin-bottom: 5px; }
+.dz-sub { font-size: 12px; color: var(--text3); }
+#file-inp { display: none; }
+.prev-img { width: 100%; max-height: 300px; object-fit: contain; border-radius: var(--r-md); border: 1px solid var(--border); display: none; }
+.ai-go { height: 44px; border-radius: var(--r-sm); border: none; background: var(--accent); color: white; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .15s; }
+.ai-go:hover { background: var(--accent-h); }
+.ai-go:disabled { background: var(--text3); cursor: not-allowed; }
+.ldbar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; display: none; }
+.ldfill { height: 100%; background: var(--accent); border-radius: 2px; animation: ld 1.8s ease-in-out infinite; }
+@keyframes ld { 0%{width:0;margin-left:0} 50%{width:65%;margin-left:0} 100%{width:0;margin-left:100%} }
+.result-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; display: none; }
+.rb-head { background: var(--accent-light); padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.rb-title { font-size: 13px; font-weight: 500; color: var(--accent); }
+.rb-body { padding: 18px; }
+.astream { font-size: 13px; color: var(--text2); line-height: 1.85; white-space: pre-wrap; max-height: 260px; overflow-y: auto; padding: 2px 0 10px; }
+.ew { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.ew:last-of-type { border-bottom: none; }
+.ew-chk { width: 17px; height: 17px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+.ew-k { font-family: 'Noto Sans JP', sans-serif; font-size: 15px; font-weight: 700; min-width: 72px; }
+.ew-kn { font-size: 11px; color: var(--accent); }
+.ew-t { font-size: 12px; color: var(--text2); flex: 1; }
+.ew-new { font-size: 10px; background: var(--accent-light); color: var(--accent); padding: 1px 6px; border-radius: 8px; font-weight: 500; }
+.add-btn { width: 100%; height: 38px; border-radius: var(--r-sm); border: 1px solid var(--accent); background: white; color: var(--accent); font-size: 13px; font-weight: 500; cursor: pointer; margin-top: 14px; font-family: 'Noto Sans JP', sans-serif; transition: all .15s; }
+.add-btn:hover { background: var(--accent); color: white; }
+
+/* toast */
+.toast { position: fixed; bottom: 22px; right: 22px; background: var(--text); color: white; padding: 9px 16px; border-radius: var(--r-sm); font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 999; }
+.toast.show { opacity: 1; }
+/* grammar table extra */
+.gm-sentence { font-size:13px; color:var(--text); line-height:1.65; }
+.gm-sentence u { text-decoration-color:var(--border2); }
+.gm-kana { font-size:11px; color:var(--accent); margin-top:2px; line-height:1.5; }
+.gm-point { font-size:12px; color:var(--text2); line-height:1.7; }
+.gm-point strong { color:var(--text); font-weight:500; }
+.freq-badge { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:500; background:var(--gold-light); color:var(--gold); border:1px solid rgba(122,94,24,.2); padding:2px 7px; border-radius:12px; white-space:nowrap; }
+.freq-num { font-size:11px; font-weight:600; color:var(--accent); }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="logo">日語単語帳</span>
+  <div class="tsep"></div>
+  <div class="stat-badge">词库 <span class="pill" id="tc">84</span> &nbsp;·&nbsp; 已掌握 <span class="pill" id="mc">0</span> &nbsp;·&nbsp; 待复习 <span class="pill" id="due-c">0</span></div>
+</div>
+<div class="subtabs">
+  <button class="stab on" onclick="gotoTab('study',this)">🃏 卡片学习</button>
+  <button class="stab" onclick="gotoTab('list',this)">📚 词库浏览</button>
+  <button class="stab" onclick="gotoTab('grammar',this)">📖 语法重点</button>
+  <button class="stab" onclick="gotoTab('upload',this)">📷 AI 提取</button>
+</div>
+
+<!-- STUDY -->
+<div id="tab-study" class="tab-panel on">
+<div class="study-page">
+  <div class="prog-row">
+    <span class="prog-counter" id="prog-lbl">第 1 / 84 张</span>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:1%"></div></div>
+    <div class="mode-btns">
+      <button class="mode-btn on" onclick="setMode('learn',this)">学习</button>
+      <button class="mode-btn" onclick="setMode('quiz',this)">自测</button>
+      <button class="mode-btn" id="review-mode-btn" onclick="setMode('review',this)">复习(<span id="due-n">0</span>)</button>
+      <button class="mode-btn" onclick="shuffleCards()">↺ 打乱</button>
+    </div>
+  </div>
+  <div class="pos-filter">
+    <span class="pos-label">筛选：</span>
+    <button class="pos-btn on" onclick="setPF('all',this)">全部 (<span id="pac">84</span>)</button>
+    <button class="pos-btn" onclick="setPF('动词',this)">动词</button>
+    <button class="pos-btn" onclick="setPF('形容词',this)">形容词</button>
+    <button class="pos-btn" onclick="setPF('名词',this)">名词</button>
+    <button class="pos-btn" onclick="setPF('副词',this)">副词</button>
+    <button class="pos-btn" onclick="setPF('外来語',this)">外来语</button>
+  </div>
+
+  <!-- card wrapper — height set dynamically -->
+  <div class="card-scene" id="card-scene" onclick="onCardClick()" style="height:340px">
+    <div class="card-3d" id="card3d" style="height:340px">
+      <div class="card-face cf" id="cf-face">
+        <span class="cf-hint" id="cf-hint">点击卡片查看释义</span>
+        <span class="cf-source" id="cf-src"></span>
+        <span class="cf-pos-badge" id="cf-pos">名词</span>
+        <div class="cf-kanji" id="cf-kanji">情景</div>
+        <div class="cf-kana" id="cf-kana">じょうけい</div>
+        <div class="cf-roman" id="cf-roman">jōkei</div>
+        <button class="cf-audio" id="cf-spk" onclick="event.stopPropagation();speakWord()" title="朗读">🔊</button>
+      </div>
+      <div class="card-face cb" id="cb-face">
+        <div class="cb-top">
+          <div class="cb-trans-wrap">
+            <div class="cb-trans" id="cb-trans">情景、景象</div>
+            <div class="cb-pos-lbl" id="cb-pos">名词</div>
+          </div>
+          <button class="cb-spk" onclick="event.stopPropagation();speakWord()" title="朗读">🔊</button>
+        </div>
+        <div class="cb-scroll" id="cb-scroll">
+          <div class="ex-block">
+            <div class="ex-lbl">例句</div>
+            <div class="ex-jp" id="ex-jp"></div>
+            <div class="ex-kana" id="ex-kana"></div>
+            <div class="ex-roman" id="ex-roman"></div>
+            <div class="ex-audio-row">
+              <button class="ex-spk-btn" onclick="event.stopPropagation();speakEx()">🔊 朗读例句</button>
+              <span class="ex-zh" id="ex-zh"></span>
+            </div>
+          </div>
+          <div class="gm-block">
+            <div class="gm-lbl">出题语法</div>
+            <div class="gm-text" id="cb-gm"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quiz-choices" id="quiz-choices"></div>
+
+  <div class="card-bottom">
+    <div class="nav-row">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)" disabled>← 上一张</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">下一张 →</button>
+    </div>
+    <div class="rate-row" id="rate-row">
+      <span class="rate-label">回忆效果：</span>
+      <button class="rate-btn again" onclick="rate(1)">忘了</button>
+      <button class="rate-btn hard" onclick="rate(3)">有点难</button>
+      <button class="rate-btn ok" onclick="rate(4)">记住了</button>
+      <button class="rate-btn easy" onclick="rate(5)">很熟 ⭐</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- LIST -->
+<div id="tab-list" class="tab-panel">
+<div class="list-page">
+  <div class="list-toolbar">
+    <input class="search-box" placeholder="搜索词汇…" oninput="doSearch(this.value)">
+    <button class="lf-btn on" onclick="setLF('all',this)">全部</button>
+    <button class="lf-btn" onclick="setLF('n5',this)">N5</button>
+    <button class="lf-btn" onclick="setLF('n4',this)">N4</button>
+    <button class="lf-btn" onclick="setLF('n3',this)">N3</button>
+    <button class="lf-btn" onclick="setLF('n2',this)">N2</button>
+    <button class="lf-btn" onclick="setLF('mastered',this)">已掌握</button>
+    <button class="lf-btn" onclick="exportJSON()" style="margin-left:auto">↓ 导出词库</button>
+  </div>
+  <div class="vtable-wrap" id="vtable-wrap">
+    <table class="vtable">
+      <thead>
+        <tr>
+          <th>汉字</th>
+          <th>译文</th>
+          <th>词性</th>
+          <th>等级</th>
+          <th>出现</th>
+          <th>发音</th>
+          <th>例句</th>
+        </tr>
+      </thead>
+      <tbody id="vtbody"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- GRAMMAR -->
+<div id="tab-grammar" class="tab-panel">
+<div class="list-page" style="max-width:1100px">
+  <div class="list-toolbar" style="margin-bottom:16px">
+    <input class="search-box" id="gm-search" placeholder="搜索语法点或句子…" oninput="filterGrammar(this.value)">
+    <button class="lf-btn on" onclick="setGF('all',this)">全部</button>
+    <button class="lf-btn" onclick="setGF('n5',this)">N5</button>
+    <button class="lf-btn" onclick="setGF('n4',this)">N4</button>
+    <button class="lf-btn" onclick="setGF('n3',this)">N3</button>
+    <button class="lf-btn" onclick="setGF('n2',this)">N2</button>
+    <button class="lf-btn" onclick="setGF('high',this)">⭐ 高频</button>
+  </div>
+  <div class="vtable-wrap" id="gm-table-wrap">
+    <table class="vtable" id="gm-table">
+      <thead>
+        <tr>
+          <th style="min-width:200px">例句（原文）</th>
+          <th style="min-width:140px">中文翻译</th>
+          <th style="min-width:180px">重点语法</th>
+          <th style="width:52px">等级</th>
+          <th style="width:64px">发音</th>
+          <th style="width:64px">高频</th>
+        </tr>
+      </thead>
+      <tbody id="gm-tbody"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- UPLOAD -->
+<div id="tab-upload" class="tab-panel">
+<div class="upload-page">
+  <div class="dropzone" id="dropzone"
+    onclick="document.getElementById('file-inp').click()"
+    ondragover="doDragOver(event)" ondrop="doDrop(event)"
+    ondragleave="this.classList.remove('drag')">
+    <div class="dz-icon">📄</div>
+    <div class="dz-title">点击上传或拖拽题目图片</div>
+    <div class="dz-sub">支持 JPG · PNG · HEIC · 可直接拍照上传</div>
+    <input type="file" id="file-inp" accept="image/*" capture="environment" onchange="onFileSelect(event)">
+  </div>
+  <img id="prev-img" class="prev-img" alt="预览">
+  <div class="ldbar" id="ldbar"><div class="ldfill"></div></div>
+  <button class="ai-go" id="ai-btn" onclick="runAI()" disabled><span>🤖</span> AI 解析题目 · 提取词汇</button>
+  <div class="result-box" id="result-box">
+    <div class="rb-head"><span>✨</span><span class="rb-title">解析完成 — 选择词汇加入词库</span></div>
+    <div class="rb-body">
+      <div class="astream" id="astream"></div>
+      <div id="ew-list"></div>
+      <button class="add-btn" onclick="addToVocab()">将选中词汇加入词库</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ─── DATA ─── */
+const VOCAB_RAW = [
+  {id:1,kanji:'情景',kana:'じょうけい',roman:'jōkei',trans:'情景、景象',pos:'名词',pg:'名词',level:'n3',src:'問題1',ex_jp:'美しい情景が目に浮かんだ。',ex_kana:'うつくしい じょうけい が め に うかんだ',ex_roman:'utsukushii jōkei ga me ni ukanda',ex_zh:'美丽的情景浮现在眼前。',gm:'<span class="grammar-tag n3">N3</span> 〜が目に浮かぶ：固定表达，意为"某事物在脑海/眼前浮现"。「浮かんだ」是「浮かぶ」的过去时（た形）。'},
+  {id:2,kanji:'乏しい',kana:'とぼしい',roman:'toboshii',trans:'匮乏的、不足的',pos:'い形容词',pg:'形容词',level:'n3',src:'問題1',ex_jp:'コンピューターの知識が乏しいように思う。',ex_kana:'コンピューター の ちしき が とぼしい ように おもう',ex_roman:'konpyūtā no chishiki ga toboshii yō ni omou',ex_zh:'感觉电脑知识相当匮乏。',gm:'<span class="grammar-tag n3">N3</span> 〜ように思う：主观判断，语气比「と思う」更委婉。'},
+  {id:3,kanji:'介護',kana:'かいご',roman:'kaigo',trans:'护理（老人/病人）',pos:'名词',pg:'名词',level:'n3',src:'問題1',ex_jp:'ボランティアでお年寄りの介護をしている。',ex_kana:'ボランティア で おとしより の かいご を している',ex_roman:'borantia de otoshiyori no kaigo wo shite iru',ex_zh:'做志愿者照护老年人。',gm:'<span class="grammar-tag n5">N5</span> 〜をしている：持续进行时。辨析：介護（かいご）≠ 看護（かんご）。'},
+  {id:4,kanji:'焦る',kana:'あせる',roman:'aseru',trans:'焦急、着急',pos:'五段动词',pg:'动词',level:'n3',src:'問題1',ex_jp:'今ごろになって焦ってもしかたない。',ex_kana:'いまごろ に なって あせって も しかたない',ex_roman:'ima goro ni natte asette mo shikata nai',ex_zh:'都到这个时候了，着急也没用。',gm:'<span class="grammar-tag n3">N3</span> 〜てもしかたない：即使……也没用，表无奈。今ごろになって含"为时已晚"语气。'},
+  {id:5,kanji:'賛否',kana:'さんぴ',roman:'sanpi',trans:'赞成与反对',pos:'名词',pg:'名词',level:'n3',src:'問題1',ex_jp:'高速道路の建設については、賛否が分かれた。',ex_kana:'こうそくどうろ の けんせつ については さんぴ が わかれた',ex_roman:'kōsoku dōro no kensetsu ni tsuite wa, sanpi ga wakareta',ex_zh:'关于高速公路建设，赞否意见出现分歧。',gm:'<span class="grammar-tag n3">N3</span> 〜については：关于……话题的提出。賛否が分かれる固定表达。「否」读ひ非ふ。'},
+  {id:6,kanji:'任せる',kana:'まかせる',roman:'makaseru',trans:'委托、交给、托付',pos:'下一段动词',pg:'动词',level:'n3',src:'問題2',ex_jp:'山本さんにまかせておけば安心です。',ex_kana:'やまもとさん に まかせて おけば あんしん です',ex_roman:'Yamamoto-san ni makasete okeba anshin desu',ex_zh:'交给山本先生的话就放心了。',gm:'<span class="grammar-tag n3">N3</span> 〜ておけば：如果事先……的话，预先行动后的安心感。'},
+  {id:7,kanji:'勧誘',kana:'かんゆう',roman:"kan'yū",trans:'邀请、劝诱',pos:'名词·サ变',pg:'名词',level:'n2',src:'問題2',ex_jp:'新入生をテニスサークルに勧誘した。',ex_kana:'しんにゅうせい を テニスサークル に かんゆう した',ex_roman:"shin'nyūsei wo tenisu sākuru ni kan'yū shita",ex_zh:'劝说新生加入了网球社团。',gm:'〜に〜する：动作对象用に标示。辨析：勧誘（かんゆう）≠ 観誘/観遊（均不存在）。'},
+  {id:8,kanji:'順調',kana:'じゅんちょう',roman:'junchō',trans:'顺利',pos:'な形容词',pg:'形容词',level:'n3',src:'問題2',ex_jp:'この計画は順調に進んでいる。',ex_kana:'この けいかく は じゅんちょう に すすんでいる',ex_roman:'kono keikaku wa junchō ni susunde iru',ex_zh:'这个计划正在顺利推进。',gm:'<span class="grammar-tag n5">N5</span> 〜ている：持续进行时。「順調に」作副词"顺利地"修饰动词。辨析：順調 ≠ 準調/順長。'},
+  {id:9,kanji:'積もる',kana:'つもる',roman:'tsumoru',trans:'堆积',pos:'五段动词',pg:'动词',level:'n3',src:'問題2',ex_jp:'落ち葉が積もった道を歩いた。',ex_kana:'おちば が つもった みち を あるいた',ex_roman:'ochiba ga tsumotta michi wo aruita',ex_zh:'走在落叶堆积的路上。',gm:'<span class="grammar-tag n5">N5</span> た形＋名詞：定语从句，「積もった道」= 积满落叶的路。'},
+  {id:10,kanji:'永久',kana:'えいきゅう',roman:'eikyū',trans:'永久、永远',pos:'名词·副词',pg:'名词',level:'n3',src:'問題2',ex_jp:'この状態が永久に続くわけではない。',ex_kana:'この じょうたい が えいきゅう に つづく わけ では ない',ex_roman:'kono jōtai ga eikyū ni tsuzuku wake de wa nai',ex_zh:'这种状态并非会永久持续。',gm:'<span class="grammar-tag n3">N3</span> 〜わけではない：并不是……，对理所当然判断的委婉否定。'},
+  {id:11,kanji:'同意見',kana:'どういけん',roman:'dōiken',trans:'相同意见',pos:'名词',pg:'名词',level:'n4',src:'問題3',ex_jp:'私も山口さんと同意見です。',ex_kana:'わたし も やまぐちさん と どういけん です',ex_roman:'watashi mo Yamaguchi-san to dōiken desu',ex_zh:'我也和山口先生意见相同。',gm:'<span class="grammar-tag n4">N4</span> 〜と同じ：和……相同。「同意見」固定复合名词，同 读 おなじ。'},
+  {id:12,kanji:'食べ頃',kana:'たべごろ',roman:'tabe-goro',trans:'适合吃的最佳时机',pos:'名词',pg:'名词',level:'n3',src:'問題3',ex_jp:'このバナナは甘い香りがするので、そろそろ食べ頃ですよ。',ex_kana:'このバナナ は あまい かおり が する ので そろそろ たべごろ です よ',ex_roman:'kono banana wa amai kaori ga suru node, sorosoro tabe-goro desu yo',ex_zh:'这根香蕉散发甜香，差不多是吃的好时候了。',gm:'<span class="grammar-tag n3">N3</span> 動詞連用形＋頃（ごろ）：接连用形后，表"正是……的好时机"。そろそろ表时机将到。'},
+  {id:13,kanji:'仮登録',kana:'かりとうろく',roman:'kari-tōroku',trans:'临时注册',pos:'名词·サ变',pg:'名词',level:'n4',src:'問題3',ex_jp:'本登録の前に、まずは仮登録を行ってください。',ex_kana:'ほんとうろく の まえ に まずは かりとうろく を おこなって ください',ex_roman:'hon-tōroku no mae ni, mazu wa kari-tōroku wo okonatte kudasai',ex_zh:'在正式注册之前，请先进行临时注册。',gm:'<span class="grammar-tag n4">N4</span> 〜の前に：在……之前。仮（かり）表临时性，≠ 予/先/近。'},
+  {id:14,kanji:'ぎりぎり',kana:'ぎりぎり',roman:'girigiri',trans:'刚好、勉强在截止前',pos:'副词',pg:'副词',level:'n4',src:'問題4',ex_jp:'宿題はぎりぎりになってからやることが多かった。',ex_kana:'しゅくだい は ぎりぎり に なってから やること が おおかった',ex_roman:'shukudai wa girigiri ni natte kara yaru koto ga ōkatta',ex_zh:'作业经常拖到最后期限前才去做。',gm:'<span class="grammar-tag n4">N4</span> 〜になってからやる：等到……才做。擬態語：ぎりぎり勉强/ばりばり全力/びりびり颤抖/じりじり焦灼。'},
+  {id:15,kanji:'解約',kana:'かいやく',roman:'kaiyaku',trans:'解除合同、取消合约',pos:'名词·サ变',pg:'名词',level:'n3',src:'問題4',ex_jp:'生命保険を解約したいので、手続きを教えてください。',ex_kana:'せいめいほけん を かいやく したい ので てつづき を おしえて ください',ex_roman:'seimei hoken wo kaiyaku shitai node, tetsuzuki wo oshiete kudasai',ex_zh:'我想解除人寿保险合同，请告诉我手续。',gm:'<span class="grammar-tag n5">N5</span> 〜をしたい：想要做……。辨析：廃止（废制度）/ 解約✓ / 中止（停活动）/ 解消（消除关系）。'},
+  {id:16,kanji:'ニーズ',kana:'ニーズ',roman:'nīzu',trans:'需求（英 needs）',pos:'外来語',pg:'外来語',level:'n2',src:'問題4',ex_jp:'お客様のニーズに対応したサービスを提供しています。',ex_kana:'おきゃくさま の ニーズ に たいおうした サービス を ていきょう しています',ex_roman:'okyakusama no nīzu ni taiō shita sābisu wo teikyō shite imasu',ex_zh:'提供满足客户需求的服务。',gm:'<span class="grammar-tag n2">N2</span> 〜に対応した〜：对应/满足……的，过去形修饰名词，书面常见。'},
+  {id:17,kanji:'開設',kana:'かいせつ',roman:'kaisetsu',trans:'开设（机构/店铺）',pos:'名词·サ变',pg:'名词',level:'n3',src:'問題4',ex_jp:'来年ここに新しい支店を開設することが決まった。',ex_kana:'らいねん ここ に あたらしい してん を かいせつ する こと が きまった',ex_roman:'rainen koko ni atarashii shiten wo kaisetsu suru koto ga kimatta',ex_zh:'已决定明年在这里开设新分店。',gm:'<span class="grammar-tag n3">N3</span> 〜することが決まった：决定了做……，こと名词化。辨析：創造/形成/工作 → 開設✓。'},
+  {id:18,kanji:'格好',kana:'かっこう',roman:'kakkō',trans:'外表、打扮、体裁',pos:'名词',pg:'名词',level:'n4',src:'問題4',ex_jp:'卒業パーティーには、ちゃんとした格好で行ったほうがいいのかな。',ex_kana:'そつぎょうパーティー には ちゃんとした かっこう で いった ほう が いい の かな',ex_roman:'sotsugyō pātī ni wa, chanto shita kakkō de itta hō ga ii no kana',ex_zh:'去毕业派对是不是应该穿得正式一点呢？',gm:'<span class="grammar-tag n4">N4</span> 〜たほうがいい：最好……，表建议。ちゃんとした〜口语"像样的"。〜のかな自言自语不确定疑问。'},
+  {id:19,kanji:'看護',kana:'かんご',roman:'kango',trans:'护理（医疗场合）',pos:'名词·サ变',pg:'名词',level:'n3',src:'混淆项',ex_jp:'看護師として病院で働いています。',ex_kana:'かんごし として びょういん で はたらいています',ex_roman:'kangoshi to shite byōin de hataraite imasu',ex_zh:'作为护士在医院工作。',gm:'辨析：看護（かんご）医疗护理 ≠ 介護（かいご）生活照护。'},
+  {id:20,kanji:'詳しい',kana:'くわしい',roman:'kuwashii',trans:'详细的、熟悉的',pos:'い形容词',pg:'形容词',level:'n3',src:'混淆项',ex_jp:'この地域に詳しい人に聞いてみましょう。',ex_kana:'この ちいき に くわしい ひと に きいて みましょう',ex_roman:'kono chiiki ni kuwashii hito ni kiite mimashō',ex_zh:'问问对这个地区熟悉的人吧。',gm:'辨析：乏しい（匮乏）vs 詳しい（详细/熟悉）。'},
+  {id:21,kanji:'貧しい',kana:'まずしい',roman:'mazushii',trans:'贫穷的',pos:'い形容词',pg:'形容词',level:'n3',src:'混淆项',ex_jp:'貧しい環境でも夢をあきらめなかった。',ex_kana:'まずしい かんきょう でも ゆめ を あきらめ なかった',ex_roman:'mazushii kankyō demo yume wo akirame nakatta',ex_zh:'即使在贫困的环境中也没有放弃梦想。',gm:'辨析：乏しい（匮乏）/ 貧しい（贫穷）/ 怪しい（可疑）读音易混。'},
+  {id:22,kanji:'怪しい',kana:'あやしい',roman:'ayashii',trans:'可疑的、奇怪的',pos:'い形容词',pg:'形容词',level:'n3',src:'混淆项',ex_jp:'あの人の行動が怪しいと思う。',ex_kana:'あの ひと の こうどう が あやしい と おもう',ex_roman:'ano hito no kōdō ga ayashii to omou',ex_zh:'我觉得那个人的行为很可疑。',gm:'〜と思う：认为……，直接表达个人判断。'},
+  {id:23,kanji:'廃止',kana:'はいし',roman:'haishi',trans:'废止、废除',pos:'名词·サ变',pg:'名词',level:'n2',src:'混淆项',ex_jp:'その法律は廃止された。',ex_kana:'その ほうりつ は はいし された',ex_roman:'sono hōritsu wa haishi sareta',ex_zh:'那条法律被废除了。',gm:'辨析：廃止（废制度规定）/ 解約（解合同）/ 中止（停活动）/ 解消（消除关系）。'},
+  {id:24,kanji:'中止',kana:'ちゅうし',roman:'chūshi',trans:'中途停止',pos:'名词·サ变',pg:'名词',level:'n3',src:'混淆项',ex_jp:'雨のため、運動会が中止になった。',ex_kana:'あめ の ため うんどうかい が ちゅうし に なった',ex_roman:'ame no tame, undōkai ga chūshi ni natta',ex_zh:'因为下雨，运动会被取消了。',gm:'中止强调中途停止（活动/行为）；廃止强调废除制度/规则。'},
+  {id:25,kanji:'解消',kana:'かいしょう',roman:'kaishō',trans:'消除（关系/压力）',pos:'名词·サ变',pg:'名词',level:'n3',src:'混淆项',ex_jp:'ストレスを解消するために運動する。',ex_kana:'ストレス を かいしょう する ために うんどうする',ex_roman:'sutoresu wo kaishō suru tame ni undō suru',ex_zh:'为了消除压力而运动。',gm:'解消搭配：ストレス解消/関係解消。与「解決」区别：解消偏"消除"，解決偏"解决"。'},
+  {id:26,kanji:'ばりばり',kana:'ばりばり',roman:'baribari',trans:'精力充沛、全力以赴',pos:'副词',pg:'副词',level:'n3',src:'混淆项',ex_jp:'彼女はばりばり働いている。',ex_kana:'かのじょ は ばりばり はたらいている',ex_roman:'kanojo wa baribari hataraite iru',ex_zh:'她正精力充沛地工作着。',gm:'擬態語：ばりばり全力 / ぎりぎり勉强 / びりびり颤抖 / じりじり焦灼。'},
+  {id:27,kanji:'びりびり',kana:'びりびり',roman:'biribiri',trans:'颤抖、撕裂声、触电感',pos:'副词',pg:'副词',level:'n3',src:'混淆项',ex_jp:'紙をびりびりに破いてしまった。',ex_kana:'かみ を びりびり に やぶいて しまった',ex_roman:'kami wo biribiri ni yabutte shimatta',ex_zh:'把纸撕得粉碎了。',gm:'擬態語びりびり多表撕裂或触电感，语境不同含义有别。'},
+  {id:28,kanji:'じりじり',kana:'じりじり',roman:'jirijiri',trans:'焦灼、慢慢逼近',pos:'副词',pg:'副词',level:'n3',src:'混淆项',ex_jp:'締め切りがじりじり近づいている。',ex_kana:'しめきり が じりじり ちかづいている',ex_roman:'shimekiri ga jirijiri chikazuite iru',ex_zh:'截止日期慢慢地逼近了。',gm:'じりじり表缓慢逼近或焦灼感，与ぎりぎり（刚好在截止前）形成对比。'},
+  {id:29,kanji:'ストライキ',kana:'ストライキ',roman:'sutoraiki',trans:'罢工（英 strike）',pos:'外来語',pg:'外来語',level:'n2',src:'混淆项',ex_jp:'労働者がストライキを起こした。',ex_kana:'ろうどうしゃ が ストライキ を おこした',ex_roman:'rōdōsha ga sutoraiki wo okoshita',ex_zh:'劳动者举行了罢工。',gm:'外来語：ニーズ(needs)/ストライキ(strike)/セールス(sales)/エコノミー(economy)。'},
+  {id:30,kanji:'セールス',kana:'セールス',roman:'sērusu',trans:'销售（英 sales）',pos:'外来語',pg:'外来語',level:'n2',src:'混淆项',ex_jp:'セールスの電話がかかってきた。',ex_kana:'セールス の でんわ が かかってきた',ex_roman:'sērusu no denwa ga kakatte kita',ex_zh:'接到了销售电话。',gm:'外来語：セールス（销售）/ マーケティング（市场营销）/ ブランド（品牌）。'},
+  {id:31,kanji:'エコノミー',kana:'エコノミー',roman:'ekonomī',trans:'经济（英 economy）',pos:'外来語',pg:'外来語',level:'n2',src:'混淆项',ex_jp:'エコノミークラスで旅行した。',ex_kana:'エコノミークラス で りょこう した',ex_roman:'ekonomī kurasu de ryokō shita',ex_zh:'乘坐经济舱旅行了。',gm:'エコノミー也指"经济实惠"；エコノミークラス = 经济舱。'},
+  {id:32,kanji:'様子',kana:'ようす',roman:'yōsu',trans:'样子、状况、神态',pos:'名词',pg:'名词',level:'n4',src:'混淆项',ex_jp:'彼の様子がおかしい。',ex_kana:'かれ の ようす が おかしい',ex_roman:'kare no yōsu ga okashii',ex_zh:'他的状态有点奇怪。',gm:'辨析：様子（状况/样子）/ 容姿（容貌姿态）/ 外見（外观）/ 格好（打扮装束）。'},
+  {id:33,kanji:'容姿',kana:'ようし',roman:'yōshi',trans:'容貌姿态',pos:'名词',pg:'名词',level:'n2',src:'混淆项',ex_jp:'容姿より中身が大切だ。',ex_kana:'ようし より なかみ が たいせつ だ',ex_roman:'yōshi yori nakami ga taisetsu da',ex_zh:'内在比外貌更重要。',gm:'容姿偏"容貌与体态"，比外見（外表）更具文学色彩。'},
+  {id:34,kanji:'外見',kana:'がいけん',roman:'gaiken',trans:'外表、外观',pos:'名词',pg:'名词',level:'n3',src:'混淆项',count:1,ex_jp:'外見で人を判断してはいけない。',ex_kana:'がいけん で ひと を はんだん しては いけない',ex_roman:'gaiken de hito wo handan shite wa ikenai',ex_zh:'不应该以外貌判断一个人。',gm:'外見（がいけん）强调可见外部形态，多用于客观描述。'},
+  /* ── 第二次试卷新词 ── */
+  {id:35,kanji:'記憶',kana:'きおく',roman:'kioku',trans:'记忆',pos:'名词·サ变',pg:'名词',level:'n4',src:'問題1·第2回',count:1,ex_jp:'その当時の記憶はあまりない。',ex_kana:'その とうじ の きおく は あまり ない',ex_roman:'sono tōji no kioku wa amari nai',ex_zh:'对那个时候的记忆几乎没有。',gm:'<span class="grammar-tag n4">N4</span> あまり〜ない：不太……，几乎没有。辨析：記憶（きおく）≠ 記録（きろく）。'},
+  {id:36,kanji:'偉い',kana:'えらい',roman:'erai',trans:'了不起、伟大',pos:'い形容词',pg:'形容词',level:'n3',src:'問題1·第2回',count:1,ex_jp:'前田さんがそんなに偉い人だとは知りませんでした。',ex_kana:'まえだ さん が そんなに えらい ひと だ とは しりませんでした',ex_roman:'Maeda-san ga sonnani erai hito da to wa shirimasen deshita',ex_zh:'没想到前田先生是这么了不起的人。',gm:'<span class="grammar-tag n3">N3</span> 〜だとは知らなかった：没想到……竟然是，表意外发现。'},
+  {id:37,kanji:'途端に',kana:'とたんに',roman:'totan ni',trans:'一……立刻，刚……就……',pos:'副词',pg:'副词',level:'n3',src:'問題1·第2回',count:1,ex_jp:'仕事の話を始めたら、途端に機嫌が悪くなった。',ex_kana:'しごと の はなし を はじめたら とたんに きげん が わるくなった',ex_roman:'shigoto no hanashi wo hajimetara, totan ni kigen ga waruku natta',ex_zh:'一开始说工作的事，马上就变得心情不好了。',gm:'<span class="grammar-tag n3">N3</span> 〜た途端に：一……就立刻……，前一动作完成后紧接发生，含意外感。'},
+  {id:38,kanji:'務める',kana:'つとめる',roman:'tsutomeru',trans:'担任（职责/职务）',pos:'下一段动词',pg:'动词',level:'n3',src:'問題1·第2回',count:1,ex_jp:'スピーチ大会の司会を務める。',ex_kana:'スピーチ たいかい の しかい を つとめる',ex_roman:'supīchi taikai no shikai wo tsutomeru',ex_zh:'担任演讲大赛的主持人。',gm:'<span class="grammar-tag n3">N3</span> 〜を務める：担任……，固定搭配。辨析：務める担任 / 勤める上班 / 努める努力。'},
+  {id:39,kanji:'素材',kana:'そうざい',roman:'sōzai',trans:'材料、素材',pos:'名词',pg:'名词',level:'n3',src:'問題1·第2回',count:1,ex_jp:'これは特別な素材で作られているそうだ。',ex_kana:'これ は とくべつ な そうざい で つくられている そうだ',ex_roman:'kore wa tokubetsu na sōzai de tsukurarete iru sō da',ex_zh:'听说这是用特别的材料制成的。',gm:'<span class="grammar-tag n3">N3</span> 〜そうだ（伝聞）：据说……。〜で作られている：用……制成，被动进行时。'},
+  {id:40,kanji:'昇る',kana:'のぼる',roman:'noboru',trans:'（太阳/月）升起',pos:'五段动词',pg:'动词',level:'n3',src:'問題2·第2回',count:1,ex_jp:'いつのまにか太陽が昇っていた。',ex_kana:'いつのまにか たいよう が のぼって いた',ex_roman:'itsu no ma ni ka taiyō ga nobotte ita',ex_zh:'不知不觉中太阳已经升起来了。',gm:'辨析：昇る太阳/月升起 / 登る爬山 / 上る一般上升。いつのまにか = 不知不觉（固定副词）。'},
+  {id:41,kanji:'垂直',kana:'すいちょく',roman:'suichoku',trans:'垂直',pos:'名词·な形容词',pg:'名词',level:'n2',src:'問題2·第2回',count:1,ex_jp:'垂直に線を引いてください。',ex_kana:'すいちょく に せん を ひいて ください',ex_roman:'suichoku ni sen wo hiite kudasai',ex_zh:'请垂直地画一条线。',gm:'「垂」すい = 垂直下落；「直」ちょく = 直线。数学/建筑常用术语。'},
+  {id:42,kanji:'住居',kana:'じゅうきょ',roman:'jūkyo',trans:'住所、居所',pos:'名词',pg:'名词',level:'n3',src:'問題2·第2回',count:1,ex_jp:'研修生のために住居を確保する必要がある。',ex_kana:'けんしゅうせい の ために じゅうきょ を かくほ する ひつよう が ある',ex_roman:'kenshūsei no tame ni jūkyo wo kakuho suru hitsuyō ga aru',ex_zh:'为实习生确保住所是必要的。',gm:'<span class="grammar-tag n3">N3</span> 〜ためには〜必要がある：为了……有必要……。辨析：住居（じゅうきょ）居住场所 / 住宅（じゅうたく）住宅建筑。'},
+  {id:43,kanji:'備える',kana:'そなえる',roman:'sonaeru',trans:'为……做准备、配备',pos:'下一段动词',pg:'动词',level:'n3',src:'問題2·第2回',count:1,ex_jp:'災害に備えることはとても大切だ。',ex_kana:'さいがい に そなえる こと は とても たいせつ だ',ex_roman:'saigai ni sonaeru koto wa totemo taisetsu da',ex_zh:'为灾害做准备是非常重要的。',gm:'<span class="grammar-tag n3">N3</span> 〜に備える：为……做准备，固定搭配。〜ことは〜だ：名词化后作主语。'},
+  {id:44,kanji:'典型的',kana:'てんけいてき',roman:'tenkeiteki',trans:'典型的',pos:'な形容词',pg:'形容词',level:'n2',src:'問題2·第2回',count:1,ex_jp:'典型的な例を挙げて説明した。',ex_kana:'てんけいてき な れい を あげて せつめい した',ex_roman:'tenkeiteki na rei wo agete setsumei shita',ex_zh:'举了典型的例子进行了说明。',gm:'<span class="grammar-tag n3">N3</span> 例を挙げて説明する：举例说明，固定表达。注意「典」てん，「型」けい。'},
+  {id:45,kanji:'異分野',kana:'いぶんや',roman:'ibun\'ya',trans:'不同领域',pos:'名词',pg:'名词',level:'n3',src:'問題3·第2回',count:1,ex_jp:'異分野の人と話すのはいい刺激になる。',ex_kana:'いぶんや の ひと と はなす の は いい しげき に なる',ex_roman:'ibun\'ya no hito to hanasu no wa ii shigeki ni naru',ex_zh:'和不同领域的人交谈会成为很好的刺激。',gm:'<span class="grammar-tag n3">N3</span> 〜になる：成为……，表变化结果。異（い）= 不同；分野（ぶんや）= 领域。'},
+  {id:46,kanji:'刺激',kana:'しげき',roman:'shigeki',trans:'刺激',pos:'名词·サ变',pg:'名词',level:'n3',src:'問題3·第2回',count:1,ex_jp:'新しい環境が彼女にとっていい刺激になった。',ex_kana:'あたらしい かんきょう が かのじょ に とって いい しげき に なった',ex_roman:'atarashii kankyō ga kanojo ni totte ii shigeki ni natta',ex_zh:'新的环境对她来说成为了很好的刺激。',gm:'〜にとって：对……来说，N3固定表达。'},
+  {id:47,kanji:'〜付き',kana:'〜つき',roman:'~tsuki',trans:'附带……的',pos:'接尾語',pg:'名词',level:'n3',src:'問題3·第2回',count:1,ex_jp:'顔写真付きの身分証明書を見せてください。',ex_kana:'かおしゃしんつき の みぶんしょうめいしょ を みせて ください',ex_roman:'kaoshashin-tsuki no mibun shōmeisho wo misete kudasai',ex_zh:'请出示带有照片的身份证明文件。',gm:'<span class="grammar-tag n3">N3</span> 〜付き（つき）：附带……的，接名词后表配备某物。例：食事付き（带餐）/ 駐車場付き（含停车场）。'},
+  {id:48,kanji:'身分証明書',kana:'みぶんしょうめいしょ',roman:'mibun shōmeisho',trans:'身份证明文件',pos:'名词',pg:'名词',level:'n3',src:'問題3·第2回',count:1,ex_jp:'顔写真付きの身分証明書が必要です。',ex_kana:'かおしゃしんつき の みぶんしょうめいしょ が ひつよう です',ex_roman:'kaoshashin-tsuki no mibun shōmeisho ga hitsuyō desu',ex_zh:'需要带有照片的身份证明文件。',gm:'公务/行政场合常用语。みぶん（身分）= 身份，しょうめいしょ（証明書）= 证明文件。'},
+  {id:49,kanji:'交渉',kana:'こうしょう',roman:'kōshō',trans:'交涉、谈判',pos:'名词·サ变',pg:'名词',level:'n3',src:'問題4·第2回',count:1,ex_jp:'会社との交渉の結果、改善してもらえることになった。',ex_kana:'かいしゃ と の こうしょう の けっか かいぜん してもらえる こと に なった',ex_roman:'kaisha to no kōshō no kekka, kaizen shite moraeru koto ni natta',ex_zh:'经过与公司的交涉，最终决定为我们改善。',gm:'<span class="grammar-tag n3">N3</span> 〜の結果、〜ことになった：经过……的结果，决定……。<span class="grammar-tag n4">N4</span> 〜てもらえる：让对方为自己做……。'},
+  {id:50,kanji:'職場環境',kana:'しょくばかんきょう',roman:'shokuba kankyō',trans:'职场环境',pos:'名词',pg:'名词',level:'n3',src:'問題4·第2回',count:1,ex_jp:'職場環境の改善に取り組んでいる。',ex_kana:'しょくばかんきょう の かいぜん に とりくんでいる',ex_roman:'shokuba kankyō no kaizen ni torikunde iru',ex_zh:'正在致力于改善职场环境。',gm:'〜に取り組む：致力于……，N3固定搭配。'},
+  {id:51,kanji:'改善',kana:'かいぜん',roman:'kaizen',trans:'改善',pos:'名词·サ变',pg:'名词',level:'n3',src:'問題4·第2回',count:1,ex_jp:'サービスを改善するために意見を集めた。',ex_kana:'サービス を かいぜん する ために いけん を あつめた',ex_roman:'sābisu wo kaizen suru tame ni iken wo atsumeta',ex_zh:'为了改善服务收集了意见。',gm:'〜するために：为了……，目的表达。改善（かいぜん）在商务日语中极高频。'},
+  {id:52,kanji:'企画',kana:'きかく',roman:'kikaku',trans:'企划、策划',pos:'名词·サ变',pg:'名词',level:'n3',src:'問題4·第2回',count:1,ex_jp:'この企画を成功させるには努力が必要だ。',ex_kana:'この きかく を せいこう させる には どりょく が ひつよう だ',ex_roman:'kono kikaku wo seikō saseru ni wa doryoku ga hitsuyō da',ex_zh:'为了使这个企划成功需要努力。',gm:'〜させるには：为了使……，使役+目的表达。'},
+  {id:53,kanji:'課題',kana:'かだい',roman:'kadai',trans:'课题、待解决问题',pos:'名词',pg:'名词',level:'n3',src:'問題4·第2回',count:1,ex_jp:'いくつもの課題をクリアしなければならない。',ex_kana:'いくつも の かだい を クリア しなければならない',ex_roman:'ikutsu mo no kadai wo kuria shinakereba naranai',ex_zh:'必须解决若干课题。',gm:'<span class="grammar-tag n3">N3</span> 〜なければならない：必须……，强义务。いくつも = 多个。'},
+  {id:54,kanji:'劣る',kana:'おとる',roman:'otoru',trans:'劣于、（性能）差',pos:'五段动词',pg:'动词',level:'n3',src:'問題4·第2回',count:1,ex_jp:'小型でも性能が劣っているわけではない。',ex_kana:'こがた でも せいのう が おとって いる わけ では ない',ex_roman:'kogata demo seinō ga ototte iru wake de wa nai',ex_zh:'即使小巧，性能并不差。',gm:'<span class="grammar-tag n3">N3</span> 〜わけではない：并不是……，委婉否定。〜に比べて：与……相比。'},
+  {id:55,kanji:'劇的',kana:'げきてき',roman:'gekiteki',trans:'戏剧性的',pos:'な形容词',pg:'形容词',level:'n2',src:'問題4·第2回',count:1,ex_jp:'父は手術後、劇的に回復した。',ex_kana:'ちち は しゅじゅつご げきてきに かいふく した',ex_roman:'chichi wa shujutsu-go, gekiteki ni kaifuku shita',ex_zh:'父亲手术后戏剧性地康复了。',gm:'<span class="grammar-tag n3">N3</span> 〜ほど〜：达到……的程度，含意外感。劇的に作副词修饰动词。'},
+  {id:56,kanji:'回復',kana:'かいふく',roman:'kaifuku',trans:'恢复（健康/状态）',pos:'名词·サ变',pg:'名词',level:'n3',src:'問題4·第2回',count:1,ex_jp:'手術後、驚くほど早く回復した。',ex_kana:'しゅじゅつご おどろく ほど はやく かいふく した',ex_roman:'shujutsu-go, odoroku hodo hayaku kaifuku shita',ex_zh:'手术后恢复得快得令人惊讶。',gm:'〜ほど：达到……的程度。回復（かいふく）常搭配「体が〜する」「経済が〜する」。'},
+  {id:57,kanji:'接続',kana:'せつぞく',roman:'setsuzoku',trans:'连接（网络/设备）',pos:'名词·サ变',pg:'名词',level:'n3',src:'問題4·第2回',count:1,ex_jp:'インターネットに接続しているパソコンが必要です。',ex_kana:'インターネット に せつぞく している パソコン が ひつよう です',ex_roman:'intānetto ni setsuzoku shite iru pasokon ga hitsuyō desu',ex_zh:'需要连接到网络的电脑。',gm:'〜に接続している：连接到……的（定语从句）。辨析：接続 ≠ 到達/付属/密着。'},
+  {id:58,kanji:'司会',kana:'しかい',roman:'shikai',trans:'主持（会议/活动）',pos:'名词·サ变',pg:'名词',level:'n3',src:'問題1·第2回',count:1,ex_jp:'スピーチ大会の司会を務める。',ex_kana:'スピーチ たいかい の しかい を つとめる',ex_roman:'supīchi taikai no shikai wo tsutomeru',ex_zh:'担任演讲大赛的主持人。',gm:'司会を務める：担任主持人，固定搭配。司会者（しかいしゃ）= 主持人。'},
+  {id:59,kanji:'機嫌',kana:'きげん',roman:'kigen',trans:'心情、情绪',pos:'名词',pg:'名词',level:'n3',src:'問題1·第2回',count:1,ex_jp:'突然、彼の機嫌が悪くなった。',ex_kana:'とつぜん かれ の きげん が わるくなった',ex_roman:'totsuzen kare no kigen ga waruku natta',ex_zh:'他突然变得心情不好了。',gm:'機嫌が悪い：心情不好。機嫌がいい：心情好。〜になる：变成……状态。'},
+  {id:60,kanji:'確保',kana:'かくほ',roman:'kakuho',trans:'确保、保障',pos:'名词·サ变',pg:'名词',level:'n3',src:'問題2·第2回',count:1,ex_jp:'安全を確保することが最優先だ。',ex_kana:'あんぜん を かくほ する こと が さいゆうせん だ',ex_roman:'anzen wo kakuho suru koto ga saiyūsen da',ex_zh:'确保安全是最优先的。',gm:'〜を確保する：确保……，正式/商务常用。最優先（さいゆうせん）= 最高优先级。'},
+  {id:61,kanji:'災害',kana:'さいがい',roman:'saigai',trans:'灾害、灾难',pos:'名词',pg:'名词',level:'n3',src:'問題2·第2回',count:1,ex_jp:'災害に備えることはとても大切だ。',ex_kana:'さいがい に そなえる こと は とても たいせつ だ',ex_roman:'saigai ni sonaeru koto wa totemo taisetsu da',ex_zh:'为灾害做准备是非常重要的。',gm:'自然災害（しぜんさいがい）= 自然灾害。〜に備える：为……做准备，固定搭配。'},
+  {id:62,kanji:'研修生',kana:'けんしゅうせい',roman:'kenshūsei',trans:'实习生、研修学员',pos:'名词',pg:'名词',level:'n2',src:'問題2·第2回',count:1,ex_jp:'研修生を受け入れる準備を進めている。',ex_kana:'けんしゅうせい を うけいれる じゅんびを すすめている',ex_roman:'kenshūsei wo ukeireru junbi wo susumete iru',ex_zh:'正在推进接收实习生的准备工作。',gm:'受け入れる（うけいれる）：接收，下一段动词。〜を進めている：正在推进……。'},
+  {id:63,kanji:'手術',kana:'しゅじゅつ',roman:'shujutsu',trans:'手术',pos:'名词·サ变',pg:'名词',level:'n2',src:'問題4·第2回',count:1,ex_jp:'父は手術後、驚くほど早く回復した。',ex_kana:'ちち は しゅじゅつご おどろく ほど はやく かいふく した',ex_roman:'chichi wa shujutsu-go, odoroku hodo hayaku kaifuku shita',ex_zh:'父亲手术后恢复得快得令人惊讶。',gm:'手術後（しゅじゅつご）= 手术后。驚くほど = 令人惊讶的程度，固定表达。'},
+  {id:64,kanji:'利用',kana:'りよう',roman:'riyō',trans:'利用、使用',pos:'名词·サ变',pg:'名词',level:'n4',src:'問題4·第2回',count:1,ex_jp:'このサービスを利用するには登録が必要です。',ex_kana:'この サービス を りよう する には とうろく が ひつよう です',ex_roman:'kono sābisu wo riyō suru ni wa tōroku ga hitsuyō desu',ex_zh:'使用此服务需要注册。',gm:'〜するには〜が必要：为了做……需要……，条件与必要性。'},
+];
+
+/* ─── STATE ─── */
+let vocab = [...VOCAB_RAW];
+let deck = [...VOCAB_RAW];
+let cur = 0, flipped = false, studyMode = 'learn';
+let posFilter = 'all', listLF = 'all', listSearch = '';
+let gmFilter = 'all', gmSearch = '';
+let masteredSet = new Set(JSON.parse(localStorage.getItem('jp_mastered')||'[]'));
+let srsState = JSON.parse(localStorage.getItem('jp_srs')||'{}');
+let uploadedFile = null, extractedWords = [];
+
+/* ─── GRAMMAR DATA ─── */
+const GRAMMAR_DATA = [
+  {id:'g1', sentence:'今ごろになって焦ってもしかたない。', kana:'いまごろ に なって あせって も しかたない', trans:'都到这个时候了，着急也没用。', point:'〜てもしかたない：即使……也没用，表无奈/无济于事', level:'n3', freq:1, ex_jp:'今ごろになって焦ってもしかたない。'},
+  {id:'g2', sentence:'このバナナはそろそろ食べ頃ですよ。', kana:'このバナナ は そろそろ たべごろ です よ', trans:'这根香蕉差不多是吃的好时候了。', point:'動詞連用形＋頃（ごろ）：正是……的好时机', level:'n3', freq:1, ex_jp:'このバナナはそろそろ食べ頃ですよ。'},
+  {id:'g3', sentence:'本登録の前に、まずは仮登録を行ってください。', kana:'ほんとうろく の まえ に まずは かりとうろく を おこなって ください', trans:'在正式注册之前，请先进行临时注册。', point:'〜の前に：在……之前，表动作顺序', level:'n4', freq:1, ex_jp:'本登録の前に、まずは仮登録を行ってください。'},
+  {id:'g4', sentence:'この状態が永久に続くわけではない。', kana:'この じょうたい が えいきゅう に つづく わけ では ない', trans:'这种状态并非会永久持续。', point:'〜わけではない：并不是……，对理所当然判断的委婉否定', level:'n3', freq:2, ex_jp:'この状態が永久に続くわけではない。'},
+  {id:'g5', sentence:'この計画はじゅんちょうに進んでいる。', kana:'この けいかく は じゅんちょう に すすんでいる', trans:'这个计画正在顺利推进。', point:'〜ている：持续进行时，动作的持续状态', level:'n5', freq:1, ex_jp:'この計画は順調に進んでいる。'},
+  {id:'g6', sentence:'山本さんにまかせておけば安心です。', kana:'やまもとさん に まかせて おけば あんしん です', trans:'交给山本先生的话就放心了。', point:'〜ておけば：如果事先……的话，预先行动的安心感', level:'n3', freq:1, ex_jp:'山本さんにまかせておけば安心です。'},
+  {id:'g7', sentence:'コンピューターの知識が乏しいように思う。', kana:'コンピューター の ちしき が とぼしい ように おもう', trans:'我认为电脑知识相当匮乏。', point:'〜ように思う：表主观判断，语气比「と思う」更委婉', level:'n3', freq:1, ex_jp:'コンピューターの知識が乏しいように思う。'},
+  {id:'g8', sentence:'高速道路の建設については、賛否が分かれた。', kana:'こうそくどうろ の けんせつ については さんぴ が わかれた', trans:'关于高速公路建设，赞否意见出现分歧。', point:'〜については：关于……（话题提出），比〜について更强调对比', level:'n3', freq:1, ex_jp:'高速道路の建設については、賛否が分かれた。'},
+  {id:'g9', sentence:'美しい情景が目に浮かんだ。', kana:'うつくしい じょうけい が め に うかんだ', trans:'美丽的情景浮现在眼前。', point:'〜が目に浮かぶ：某事物在脑海/眼前浮现，固定表达', level:'n3', freq:1, ex_jp:'美しい情景が目に浮かんだ。'},
+  {id:'g10', sentence:'落ち葉が積もった道を歩いた。', kana:'おちば が つもった みち を あるいた', trans:'走在落叶堆积的路上。', point:'た形＋名詞：完成状态的定语从句修饰名词', level:'n5', freq:1, ex_jp:'落ち葉が積もった道を歩いた。'},
+  /* 第二次试卷语法 */
+  {id:'g11', sentence:'私が仕事の話を始めたら、途端に機嫌が悪くなった。', kana:'わたし が しごと の はなし を はじめたら とたんに きげん が わるくなった', trans:'我一开始说工作的事，马上就变得心情不好了。', point:'〜た途端に：一……就立刻……，前一动作完成后紧接发生，含意外感', level:'n3', freq:1, ex_jp:'仕事の話を始めたら、途端に機嫌が悪くなった。'},
+  {id:'g12', sentence:'研修生を受け入れるためには、住居を確保する必要がある。', kana:'けんしゅうせい を うけいれる ためには じゅうきょ を かくほ する ひつよう が ある', trans:'为了接收实习生，有必要确保住所。', point:'〜ためには〜必要がある：为了……有必要……，目的与义务的固定表达', level:'n3', freq:1, ex_jp:'研修生を受け入れるためには、住居を確保する必要がある。'},
+  {id:'g13', sentence:'災害に備えることはとても大切だ。', kana:'さいがい に そなえる こと は とても たいせつ だ', trans:'为灾害做准备是非常重要的。', point:'〜に備える：为……做准备，固定搭配；〜ことは〜だ：名词化后作主语', level:'n3', freq:1, ex_jp:'災害に備えることはとても大切だ。'},
+  {id:'g14', sentence:'このカメラは小型だが、性能が劣っているわけではない。', kana:'この カメラ は こがた だが せいのう が おとって いる わけ では ない', trans:'这款相机虽然小巧，但性能并不差。', point:'〜わけではない：并不是……，委婉否定（高频考点）', level:'n3', freq:2, ex_jp:'小型だが、性能が劣っているわけではない。'},
+  {id:'g15', sentence:'父は手術後、医者も驚くほど劇的に回復した。', kana:'ちち は しゅじゅつご いしゃ も おどろく ほど げきてきに かいふく した', trans:'父亲手术后，恢复得令医生都感到惊讶，堪称戏剧性康复。', point:'〜ほど〜：达到……的程度，表程度之深令人意外', level:'n3', freq:1, ex_jp:'医者も驚くほど劇的に回復した。'},
+  {id:'g16', sentence:'このシステムを利用するには、インターネットに接続しているパソコンが必要です。', kana:'このシステム を りよう する には インターネット に せつぞく している パソコン が ひつよう です', trans:'使用该系统需要连接到网络的电脑。', point:'〜するには〜が必要：为了做……需要……，条件与必要性表达', level:'n3', freq:1, ex_jp:'このシステムを利用するには、接続しているパソコンが必要です。'},
+  {id:'g17', sentence:'会社との交渉の結果、改善してもらえることになった。', kana:'かいしゃ と の こうしょう の けっか かいぜん してもらえる こと に なった', trans:'经过与公司的交涉，最终决定为我们改善。', point:'〜の結果、〜ことになった：经过……的结果，决定……（正式表达）', level:'n3', freq:1, ex_jp:'交渉の結果、改善してもらえることになった。'},
+  {id:'g18', sentence:'顔写真付きの身分証明書を見せてください。', kana:'かおしゃしんつき の みぶんしょうめいしょ を みせて ください', trans:'请出示带有照片的身份证明文件。', point:'〜付き（つき）：附带……的，接名词后表配备/附带某物', level:'n3', freq:1, ex_jp:'顔写真付きの身分証明書を見せてください。'},
+  {id:'g19', sentence:'いつのまにか太陽が昇っていた。', kana:'いつのまにか たいよう が のぼって いた', trans:'不知不觉中太阳已经升起来了。', point:'いつのまにか：不知不觉，固定副词；〜ていた：发现某状态已完成', level:'n3', freq:1, ex_jp:'いつのまにか太陽が昇っていた。'},
+  {id:'g20', sentence:'前田さんがそんなに偉い人だとは知りませんでした。', kana:'まえださん が そんなに えらい ひと だ とは しりませんでした', trans:'没想到前田先生是这么了不起的人。', point:'〜だとは知らなかった：没想到……竟然是，表达意外发现的强调句式', level:'n3', freq:1, ex_jp:'そんなに偉い人だとは知りませんでした。'},
+];
+
+/* ─── TABS ─── */
+function gotoTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('tab-'+name).classList.add('on');
+  btn.classList.add('on');
+  if(name==='list') renderList();
+  if(name==='grammar') renderGrammar();
+}
+
+/* ─── DECK / FILTER ─── */
+function setPF(pg, btn) {
+  posFilter = pg;
+  document.querySelectorAll('.pos-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  buildDeck();
+}
+function buildDeck() {
+  let src = posFilter==='all' ? [...vocab] : vocab.filter(w=>w.pg===posFilter);
+  if (studyMode==='review') {
+    const now = Date.now();
+    src = src.filter(w => { const s=srsState[w.id]; return s && s.due<=now; });
+  }
+  deck = src;
+  cur=0; flipped=false;
+  document.getElementById('card3d').classList.remove('flipped');
+  document.getElementById('pac').textContent = vocab.length;
+  updateStats();
+  renderCard();
+  if(studyMode==='review' && !deck.length) showToast('💡 暂无待复习词汇，先在学习模式中背新词！');
+}
+function setMode(m, btn) {
+  studyMode=m;
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  buildDeck();
+}
+function shuffleCards() {
+  for(let i=deck.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]]; }
+  cur=0; flipped=false;
+  document.getElementById('card3d').classList.remove('flipped');
+  renderCard(); showToast('🔀 已打乱顺序');
+}
+
+/* ─── RENDER CARD ─── */
+const posColors = {'动词':'#e4f0ff,#1a5c9a','形容词':'#eee8ff,#4a2fa0','名词':'#ede8ff,#4c35b5','副词':'#e4fff5,#1a6a4a','外来語':'#fff3e8,#8a4a1a'};
+const lvStyle = {n5:'background:#fdf7e4;color:#7a5e18',n4:'background:#e6f0fa;color:#1c4478',n3:'background:#e7f2eb;color:#2d5a3d',n2:'background:#fdf0ec;color:#8b3a2a',n1:'background:#f3edf8;color:#5a2d7a'};
+
+function renderCard() {
+  const rr=document.getElementById('rate-row');
+  const qc=document.getElementById('quiz-choices');
+  if(!deck.length){
+    document.getElementById('prog-lbl').textContent='暂无卡片';
+    document.getElementById('prog-fill').style.width='0%';
+    document.getElementById('cf-hint').textContent=studyMode==='review'?'🎉 今日没有待复习的词汇！先去学习模式学新词吧':'暂无词汇';
+    document.getElementById('cf-kanji').textContent='——';
+    document.getElementById('cf-kana').textContent='';
+    document.getElementById('cf-roman').textContent='';
+    document.getElementById('cf-src').textContent='';
+    document.getElementById('cf-pos').textContent='';
+    document.getElementById('cf-pos').style.cssText='';
+    document.getElementById('cb-trans').textContent='';
+    document.getElementById('cb-pos').textContent='';
+    document.getElementById('ex-jp').textContent='';
+    document.getElementById('ex-kana').textContent='';
+    document.getElementById('ex-roman').textContent='';
+    document.getElementById('ex-zh').textContent='';
+    document.getElementById('cb-gm').innerHTML='';
+    document.getElementById('prev-btn').disabled=true;
+    document.getElementById('next-btn').disabled=true;
+    rr.style.display='none'; qc.classList.remove('show');
+    return;
+  }
+  const w=deck[cur];
+  flipped=false;
+  document.getElementById('card3d').classList.remove('flipped');
+
+  // progress
+  const pct=Math.round((cur+1)/deck.length*100);
+  document.getElementById('prog-lbl').textContent=`第 ${cur+1} / ${deck.length} 张`;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prev-btn').disabled=cur===0;
+  document.getElementById('next-btn').disabled=cur===deck.length-1;
+
+  // front — SRS hint
+  const srs=getSRS(w.id);
+  const hint=document.getElementById('cf-hint');
+  if(srs.reps>0){
+    const daysLeft=Math.max(0,Math.round((srs.due-Date.now())/86400000));
+    hint.textContent=daysLeft===0?'📅 今日应复习':`📅 ${daysLeft}天后复习`;
+  } else { hint.textContent='点击卡片查看释义'; }
+
+  document.getElementById('cf-src').textContent=w.src||'';
+  const pb=document.getElementById('cf-pos');
+  pb.textContent=w.pos;
+  const pc=(posColors[w.pg]||'#ede8ff,#4c35b5').split(',');
+  pb.style.cssText=`background:${pc[0]};color:${pc[1]};`;
+  document.getElementById('cf-kanji').textContent=w.kanji;
+  document.getElementById('cf-kana').textContent=w.kana;
+  document.getElementById('cf-roman').textContent=w.roman;
+
+  // back
+  document.getElementById('cb-trans').textContent=w.trans;
+  document.getElementById('cb-pos').textContent=w.pos;
+  document.getElementById('ex-jp').textContent=w.ex_jp;
+  document.getElementById('ex-kana').textContent=w.ex_kana;
+  document.getElementById('ex-roman').textContent=w.ex_roman;
+  document.getElementById('ex-zh').textContent=w.ex_zh;
+  document.getElementById('cb-gm').innerHTML=w.gm;
+
+  // adjust heights after content is set
+  requestAnimationFrame(fixCardHeight);
+
+  // quiz or learn
+  if(studyMode==='quiz'){ qc.classList.add('show'); rr.style.display='none'; renderQuiz(w); }
+  else { qc.classList.remove('show'); rr.style.display='flex'; }
+}
+
+function fixCardHeight() {
+  const frontH=document.getElementById('cf-face').scrollHeight;
+  const backH=document.getElementById('cb-face').scrollHeight;
+  const h=Math.max(frontH, backH, 300);
+  const scene=document.getElementById('card-scene');
+  const card3d=document.getElementById('card3d');
+  scene.style.height=h+'px';
+  card3d.style.height=h+'px';
+  // back face: limit scroll area
+  const cbScroll=document.getElementById('cb-scroll');
+  const cbTopH=document.getElementById('cb-face').querySelector('.cb-top').scrollHeight;
+  cbScroll.style.maxHeight=(h-cbTopH-2)+'px';
+}
+
+function onCardClick() { if(studyMode==='quiz'||!deck.length) return; flipped=!flipped; document.getElementById('card3d').classList.toggle('flipped',flipped); }
+
+/* ─── QUIZ ─── */
+function renderQuiz(correct) {
+  const pool=vocab.filter(w=>w.id!==correct.id);
+  const wrongs=[];
+  while(wrongs.length<3&&pool.length){ const i=Math.floor(Math.random()*pool.length); wrongs.push(pool.splice(i,1)[0]); }
+  const choices=[correct,...wrongs].sort(()=>Math.random()-.5);
+  document.getElementById('quiz-choices').innerHTML=choices.map(c=>`<button class="qc-btn" data-id="${c.id}" onclick="checkQ(${c.id},${correct.id},this)">${c.trans}</button>`).join('');
+}
+function checkQ(chosen, cid, btn) {
+  document.querySelectorAll('.qc-btn').forEach(b=>{ b.onclick=null; });
+  if(chosen===cid){ btn.classList.add('correct'); }
+  else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.qc-btn').forEach(b=>{ if(parseInt(b.dataset.id)===cid) b.classList.add('correct'); });
+  }
+  document.getElementById('card3d').classList.add('flipped');
+  showToast(chosen===cid?'✅ 正确！':'❌ 再想想');
+  setTimeout(()=>{ if(cur<deck.length-1) navigate(1); else showToast('🎉 本轮自测完成！'); }, 1400);
+}
+
+/* ─── NAV / RATE ─── */
+function navigate(d) { const n=cur+d; if(n>=0&&n<deck.length){ cur=n; renderCard(); } }
+function rate(q) {
+  const w=deck[cur];
+  updateSRS(w.id, q);
+  if(q>=4){ masteredSet.add(w.id); localStorage.setItem('jp_mastered',JSON.stringify([...masteredSet])); }
+  else if(q<=3){ masteredSet.delete(w.id); localStorage.setItem('jp_mastered',JSON.stringify([...masteredSet])); }
+  const msgs={1:'再来一次！',3:'下次加油',4:'✅ 记住了！',5:'⭐ 完全掌握！'};
+  showToast(msgs[q]||'');
+  updateStats();
+  if(studyMode==='review'){
+    deck.splice(cur,1);
+    if(!deck.length){ showToast('🎉 今日复习完成！'); renderCard(); return; }
+    cur=Math.min(cur,deck.length-1);
+    renderCard();
+  } else {
+    if(cur<deck.length-1) navigate(1); else showToast('🎉 本轮学习完成！');
+  }
+}
+
+/* ─── AUDIO ─── */
+function speak(text, btn) {
+  if(!text) return;
+  const u=new SpeechSynthesisUtterance(text); u.lang='ja-JP'; u.rate=0.88;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+  if(btn){ btn.classList.add('spin'); setTimeout(()=>btn.classList.remove('spin'),700); }
+}
+function speakWord() { const w=deck[cur]; if(w) speak(w.kana, document.getElementById('cf-spk')); }
+function speakEx() { const w=deck[cur]; if(w) speak(w.ex_jp, document.querySelector('.ex-spk-btn')); }
+
+/* ─── LIST ─── */
+function renderList() {
+  const wrap=document.getElementById('vtable-wrap');
+  const src=vocab.filter(w=>{
+    const lm=listLF==='all'?true:listLF==='mastered'?masteredSet.has(w.id):w.level===listLF;
+    const sm=!listSearch||w.kanji.includes(listSearch)||w.kana.includes(listSearch)||w.trans.includes(listSearch);
+    return lm&&sm;
+  });
+  if(!src.length){
+    wrap.innerHTML='<div class="empty"><div style="font-size:32px;margin-bottom:10px">🔍</div>没有匹配的词汇</div>';
+    return;
+  }
+  if(!document.getElementById('vtbody')){
+    wrap.innerHTML=`<table class="vtable"><thead><tr><th>汉字</th><th>译文</th><th>词性</th><th>等级</th><th>出现</th><th>发音</th><th>例句</th></tr></thead><tbody id="vtbody"></tbody></table>`;
+  }
+  document.getElementById('vtbody').innerHTML=src.map(w=>{
+    const lv=lvStyle[w.level]||'';
+    const done=masteredSet.has(w.id);
+    const exJpSafe=(w.ex_jp||'').replace(/'/g,"\\'");
+    const kanaSafe=(w.kana||'').replace(/'/g,"\\'");
+    const cnt=w.count||1;
+    const cntBadge=cnt>=2
+      ? `<span style="display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:600;background:var(--gold-light);color:var(--gold);border:1px solid rgba(122,94,24,.2);padding:2px 7px;border-radius:12px">⭐ ${cnt}次</span>`
+      : `<span style="font-size:12px;color:var(--text3)">${cnt}次</span>`;
+    return `<tr class="${done?'vt-done':''}" onclick="jumpStudy(${w.id})" title="点击进入卡片学习">
+      <td><div style="display:flex;align-items:center;gap:4px">${done?'<span class="vt-ok">✓</span>':''}<div><div class="vt-kanji">${w.kanji}</div><div class="vt-kana">${w.kana}</div></div></div></td>
+      <td class="vt-trans">${w.trans}</td>
+      <td class="vt-pos">${w.pos}</td>
+      <td><span class="vt-lv" style="${lv}">${(w.level||'').toUpperCase()}</span></td>
+      <td style="text-align:center">${cntBadge}</td>
+      <td><button class="vt-spk" onclick="event.stopPropagation();speak('${kanaSafe}')" title="朗读单词">🔊</button></td>
+      <td><div class="vt-ex"><div class="vt-ex-jp">${w.ex_jp||''}</div><div style="color:var(--text3);font-size:11px;margin-top:1px">${w.ex_zh||''}</div><button class="vt-ex-spk" onclick="event.stopPropagation();speak('${exJpSafe}')">🔊 例句发音</button></div></td>
+    </tr>`;
+  }).join('');
+}
+function doSearch(q){ listSearch=q; renderList(); }
+function setLF(f,btn){ listLF=f; document.querySelectorAll('.lf-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderList(); }
+function jumpStudy(id){
+  const idx=deck.findIndex(w=>w.id===id);
+  if(idx>=0){ cur=idx; gotoTab('study',document.querySelector('.stab')); renderCard(); }
+}
+
+/* ─── GRAMMAR ─── */
+function renderGrammar(){
+  const wrap=document.getElementById('gm-table-wrap');
+  const lvStyle2={n5:'background:#fdf7e4;color:#7a5e18',n4:'background:#e6f0fa;color:#1c4478',n3:'background:#e7f2eb;color:#2d5a3d',n2:'background:#fdf0ec;color:#8b3a2a',n1:'background:#f3edf8;color:#5a2d7a'};
+  const src=GRAMMAR_DATA.filter(g=>{
+    const lm=gmFilter==='all'?true:gmFilter==='high'?g.freq>=2:g.level===gmFilter;
+    const sm=!gmSearch||g.sentence.includes(gmSearch)||g.trans.includes(gmSearch)||g.point.includes(gmSearch);
+    return lm&&sm;
+  });
+  if(!src.length){ wrap.innerHTML='<div class="empty"><div style="font-size:28px;margin-bottom:8px">🔍</div>没有匹配的语法</div>'; return; }
+  if(!document.getElementById('gm-tbody')){
+    wrap.innerHTML=`<table class="vtable" id="gm-table"><thead><tr><th style="min-width:200px">例句（原文）</th><th style="min-width:140px">中文翻译</th><th style="min-width:180px">重点语法</th><th style="width:52px">等级</th><th style="width:64px">发音</th><th style="width:64px">高频</th></tr></thead><tbody id="gm-tbody"></tbody></table>`;
+  }
+  document.getElementById('gm-tbody').innerHTML=src.map(g=>{
+    const lv=lvStyle2[g.level]||'';
+    const exSafe=(g.ex_jp||'').replace(/'/g,"\\'");
+    const freqCell=g.freq>=2
+      ? `<span class="freq-badge">⭐ ${g.freq}次</span>`
+      : `<span style="font-size:11px;color:var(--text3)">1次</span>`;
+    return `<tr>
+      <td>
+        <div class="gm-sentence">${g.sentence}</div>
+        <div class="gm-kana">${g.kana}</div>
+      </td>
+      <td style="font-size:12px;color:var(--text2);line-height:1.6">${g.trans}</td>
+      <td><div class="gm-point"><strong>${g.point.split('：')[0]}：</strong>${g.point.split('：').slice(1).join('：')}</div></td>
+      <td><span class="vt-lv" style="${lv}">${(g.level||'').toUpperCase()}</span></td>
+      <td><button class="vt-spk" onclick="speak('${exSafe}')" title="朗读例句">🔊</button></td>
+      <td style="text-align:center">${freqCell}</td>
+    </tr>`;
+  }).join('');
+}
+function filterGrammar(q){ gmSearch=q; renderGrammar(); }
+function setGF(f,btn){ gmFilter=f; document.querySelectorAll('#tab-grammar .lf-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderGrammar(); }
+
+/* ─── UPLOAD ─── */
+function doDragOver(e){ e.preventDefault(); document.getElementById('dropzone').classList.add('drag'); }
+function doDrop(e){ e.preventDefault(); document.getElementById('dropzone').classList.remove('drag'); const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) setFile(f); }
+function onFileSelect(e){ const f=e.target.files[0]; if(f) setFile(f); }
+function setFile(f){
+  uploadedFile=f;
+  const r=new FileReader();
+  r.onload=ev=>{ const img=document.getElementById('prev-img'); img.src=ev.target.result; img.style.display='block'; };
+  r.readAsDataURL(f);
+  document.getElementById('ai-btn').disabled=false;
+  document.getElementById('result-box').style.display='none';
+}
+async function runAI(){
+  if(!uploadedFile) return;
+  const btn=document.getElementById('ai-btn'), ldbar=document.getElementById('ldbar'), rbox=document.getElementById('result-box'), as=document.getElementById('astream'), ewl=document.getElementById('ew-list');
+  btn.disabled=true; btn.innerHTML='<span>⏳</span> AI 解析中…';
+  ldbar.style.display='block'; rbox.style.display='none'; as.textContent=''; ewl.innerHTML=''; extractedWords=[];
+  const b64=await new Promise(res=>{ const r=new FileReader(); r.onload=e=>res(e.target.result.split(',')[1]); r.readAsDataURL(uploadedFile); });
+  const mt=uploadedFile.type||'image/jpeg';
+  const sys=`你是JLPT考试分析专家。用户上传日语题目图片。完成：
+【题目解析】逐题分析：正确答案、关键语法点（标注N级别）、核心词汇。
+【词汇提取】提取所有重要词汇，JSON数组放在 <VOCAB_JSON></VOCAB_JSON> 标签之间：
+[{"kanji":"漢字","kana":"かな","roman":"rōmaji","trans":"中文释义","pos":"词性","pg":"名词|动词|形容词|副词|外来語","level":"n3","src":"来源","ex_jp":"例句日语","ex_kana":"例句假名","ex_roman":"例句罗马音","ex_zh":"例句中文","gm":"语法点（可含<span class=grammar-tag n3>N3</span>标签）"}]
+level只能是n5/n4/n3/n2/n1。只输JSON，不要多余内容。`;
+  try {
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4096,system:sys,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mt,data:b64}},{type:'text',text:'请详细解析图片中的日语题目，提取所有词汇。'}]}]})});
+    const data=await resp.json();
+    ldbar.style.display='none';
+    const full=(data.content||[]).map(c=>c.text||'').join('');
+    as.textContent=full.split('<VOCAB_JSON>')[0].trim();
+    const jm=full.match(/<VOCAB_JSON>([\s\S]*?)<\/VOCAB_JSON>/);
+    if(jm){ try{ extractedWords=JSON.parse(jm[1].trim()); renderEW(); }catch(e){} }
+    rbox.style.display='block'; btn.innerHTML='<span>✅</span> 解析完成'; btn.disabled=false;
+  } catch(err){
+    ldbar.style.display='none'; as.textContent='解析出错：'+err.message;
+    rbox.style.display='block'; btn.innerHTML='<span>🤖</span> AI 解析题目 · 提取词汇'; btn.disabled=false;
+  }
+}
+function renderEW(){
+  const existing=new Set(vocab.map(w=>w.kanji));
+  const ewl=document.getElementById('ew-list');
+  if(!extractedWords.length){ ewl.innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px 0">未提取到词汇</div>'; return; }
+  ewl.innerHTML=extractedWords.map((w,i)=>{
+    const isNew=!existing.has(w.kanji);
+    return `<div class="ew"><input type="checkbox" class="ew-chk" id="ew${i}" ${isNew?'checked':''}><div><div class="ew-k">${w.kanji}</div><div class="ew-kn">${w.kana}</div></div><div class="ew-t">${w.trans}</div>${isNew?'<span class="ew-new">新词</span>':'<span style="font-size:10px;color:var(--text3)">已有</span>'}</div>`;
+  }).join('');
+}
+function addToVocab(){
+  const existing=new Set(vocab.map(w=>w.kanji));
+  let added=0;
+  extractedWords.forEach((w,i)=>{ const cb=document.getElementById('ew'+i); if(cb&&cb.checked&&!existing.has(w.kanji)){ vocab.push({...w,id:Date.now()+i}); added++; } });
+  if(added){ updateStats(); buildDeck(); showToast(`✅ 已添加 ${added} 个词汇`); }
+  else showToast('ℹ️ 没有新词汇被添加');
+}
+
+/* ─── SRS ─── */
+function getSRS(id){ return srsState[id]||{interval:0,ef:2.5,reps:0,due:0}; }
+function updateSRS(id,q){
+  const dayMs=86400000;
+  let s=getSRS(id);
+  if(q===1){ s.reps=0; s.interval=1; }
+  else{
+    s.reps++;
+    if(s.reps===1) s.interval=1;
+    else if(s.reps===2) s.interval=(q>=4?4:2);
+    else s.interval=Math.max(1,Math.round(s.interval*(q===3?1.2:s.ef)*(q===5?1.3:1)));
+    s.ef=Math.max(1.3,s.ef+0.1-(5-q)*(0.08+(5-q)*0.02));
+  }
+  s.due=Date.now()+s.interval*dayMs;
+  srsState[id]=s;
+  localStorage.setItem('jp_srs',JSON.stringify(srsState));
+}
+function getDueCount(){ const now=Date.now(); return vocab.filter(w=>{ const s=srsState[w.id]; return s&&s.due<=now; }).length; }
+
+/* ─── UTILS ─── */
+function updateStats(){
+  document.getElementById('tc').textContent=vocab.length;
+  document.getElementById('mc').textContent=masteredSet.size;
+  document.getElementById('pac').textContent=vocab.length;
+  const dc=getDueCount();
+  document.getElementById('due-c').textContent=dc;
+  document.getElementById('due-n').textContent=dc;
+}
+function exportJSON(){
+  const data=JSON.stringify(vocab,null,2);
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(data);
+  a.download='jp_vocab_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  showToast('✅ 词库已导出');
+}
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+/* ─── INIT ─── */
+buildDeck();
+updateStats();
+window.addEventListener('resize', fixCardHeight);
+</script>
+</body>
+</html>
