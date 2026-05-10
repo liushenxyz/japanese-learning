@@ -294,13 +294,13 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   .vtable td { padding: 10px 10px; }
   .vtable th { padding: 8px 10px; }
 
-  /* grammar table → show only sentence + trans + audio */
-  #gm-table th:nth-child(3),
-  #gm-table td:nth-child(3),
+  /* grammar table: cols 1=# 2=例句 3=中文 4=重点语法 5=等级 6=批次 7=发音 8=高频 */
   #gm-table th:nth-child(4),
   #gm-table td:nth-child(4),
   #gm-table th:nth-child(6),
-  #gm-table td:nth-child(6) { display: none; }
+  #gm-table td:nth-child(6),
+  #gm-table th:nth-child(8),
+  #gm-table td:nth-child(8) { display: none; }
 
   /* upload */
   .upload-page { padding: 12px 12px 48px; }
@@ -453,10 +453,12 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
     <table class="vtable" id="gm-table">
       <thead>
         <tr>
+          <th style="width:40px;text-align:center">#</th>
           <th style="min-width:200px">例句（原文）</th>
           <th style="min-width:140px">中文翻译</th>
           <th style="min-width:180px">重点语法</th>
           <th style="width:52px">等级</th>
+          <th style="width:72px">批次</th>
           <th style="width:64px">发音</th>
           <th style="width:64px">高频</th>
         </tr>
@@ -577,27 +579,27 @@ let uploadedFile = null, extractedWords = [];
 
 /* ─── GRAMMAR DATA ─── */
 const GRAMMAR_DATA = [
-  {id:'g1', sentence:'今ごろになって焦ってもしかたない。', kana:'いまごろ に なって あせって も しかたない', trans:'都到这个时候了，着急也没用。', point:'〜てもしかたない：即使……也没用，表无奈/无济于事', level:'n3', freq:1, ex_jp:'今ごろになって焦ってもしかたない。'},
-  {id:'g2', sentence:'このバナナはそろそろ食べ頃ですよ。', kana:'このバナナ は そろそろ たべごろ です よ', trans:'这根香蕉差不多是吃的好时候了。', point:'動詞連用形＋頃（ごろ）：正是……的好时机', level:'n3', freq:1, ex_jp:'このバナナはそろそろ食べ頃ですよ。'},
-  {id:'g3', sentence:'本登録の前に、まずは仮登録を行ってください。', kana:'ほんとうろく の まえ に まずは かりとうろく を おこなって ください', trans:'在正式注册之前，请先进行临时注册。', point:'〜の前に：在……之前，表动作顺序', level:'n4', freq:1, ex_jp:'本登録の前に、まずは仮登録を行ってください。'},
-  {id:'g4', sentence:'この状態が永久に続くわけではない。', kana:'この じょうたい が えいきゅう に つづく わけ では ない', trans:'这种状态并非会永久持续。', point:'〜わけではない：并不是……，对理所当然判断的委婉否定', level:'n3', freq:2, ex_jp:'この状態が永久に続くわけではない。'},
-  {id:'g5', sentence:'この計画はじゅんちょうに進んでいる。', kana:'この けいかく は じゅんちょう に すすんでいる', trans:'这个计画正在顺利推进。', point:'〜ている：持续进行时，动作的持续状态', level:'n5', freq:1, ex_jp:'この計画は順調に進んでいる。'},
-  {id:'g6', sentence:'山本さんにまかせておけば安心です。', kana:'やまもとさん に まかせて おけば あんしん です', trans:'交给山本先生的话就放心了。', point:'〜ておけば：如果事先……的话，预先行动的安心感', level:'n3', freq:1, ex_jp:'山本さんにまかせておけば安心です。'},
-  {id:'g7', sentence:'コンピューターの知識が乏しいように思う。', kana:'コンピューター の ちしき が とぼしい ように おもう', trans:'我认为电脑知识相当匮乏。', point:'〜ように思う：表主观判断，语气比「と思う」更委婉', level:'n3', freq:1, ex_jp:'コンピューターの知識が乏しいように思う。'},
-  {id:'g8', sentence:'高速道路の建設については、賛否が分かれた。', kana:'こうそくどうろ の けんせつ については さんぴ が わかれた', trans:'关于高速公路建设，赞否意见出现分歧。', point:'〜については：关于……（话题提出），比〜について更强调对比', level:'n3', freq:1, ex_jp:'高速道路の建設については、賛否が分かれた。'},
-  {id:'g9', sentence:'美しい情景が目に浮かんだ。', kana:'うつくしい じょうけい が め に うかんだ', trans:'美丽的情景浮现在眼前。', point:'〜が目に浮かぶ：某事物在脑海/眼前浮现，固定表达', level:'n3', freq:1, ex_jp:'美しい情景が目に浮かんだ。'},
-  {id:'g10', sentence:'落ち葉が積もった道を歩いた。', kana:'おちば が つもった みち を あるいた', trans:'走在落叶堆积的路上。', point:'た形＋名詞：完成状态的定语从句修饰名词', level:'n5', freq:1, ex_jp:'落ち葉が積もった道を歩いた。'},
+  {id:'g1', vocabId:4,  sentence:'今ごろになって焦ってもしかたない。', kana:'いまごろ に なって あせって も しかたない', trans:'都到这个时候了，着急也没用。', point:'〜てもしかたない：即使……也没用，表无奈/无济于事', level:'n3', freq:1, ex_jp:'今ごろになって焦ってもしかたない。'},
+  {id:'g2', vocabId:12, sentence:'このバナナはそろそろ食べ頃ですよ。', kana:'このバナナ は そろそろ たべごろ です よ', trans:'这根香蕉差不多是吃的好时候了。', point:'動詞連用形＋頃（ごろ）：正是……的好时机', level:'n3', freq:1, ex_jp:'このバナナはそろそろ食べ頃ですよ。'},
+  {id:'g3', vocabId:13, sentence:'本登録の前に、まずは仮登録を行ってください。', kana:'ほんとうろく の まえ に まずは かりとうろく を おこなって ください', trans:'在正式注册之前，请先进行临时注册。', point:'〜の前に：在……之前，表动作顺序', level:'n4', freq:1, ex_jp:'本登録の前に、まずは仮登録を行ってください。'},
+  {id:'g4', vocabId:10, sentence:'この状態が永久に続くわけではない。', kana:'この じょうたい が えいきゅう に つづく わけ では ない', trans:'这种状态并非会永久持续。', point:'〜わけではない：并不是……，对理所当然判断的委婉否定', level:'n3', freq:2, ex_jp:'この状態が永久に続くわけではない。'},
+  {id:'g5', vocabId:8,  sentence:'この計画はじゅんちょうに進んでいる。', kana:'この けいかく は じゅんちょう に すすんでいる', trans:'这个计画正在顺利推进。', point:'〜ている：持续进行时，动作的持续状态', level:'n5', freq:1, ex_jp:'この計画は順調に進んでいる。'},
+  {id:'g6', vocabId:6,  sentence:'山本さんにまかせておけば安心です。', kana:'やまもとさん に まかせて おけば あんしん です', trans:'交给山本先生的话就放心了。', point:'〜ておけば：如果事先……的话，预先行动的安心感', level:'n3', freq:1, ex_jp:'山本さんにまかせておけば安心です。'},
+  {id:'g7', vocabId:2,  sentence:'コンピューターの知識が乏しいように思う。', kana:'コンピューター の ちしき が とぼしい ように おもう', trans:'我认为电脑知识相当匮乏。', point:'〜ように思う：表主观判断，语气比「と思う」更委婉', level:'n3', freq:1, ex_jp:'コンピューターの知識が乏しいように思う。'},
+  {id:'g8', vocabId:5,  sentence:'高速道路の建設については、賛否が分かれた。', kana:'こうそくどうろ の けんせつ については さんぴ が わかれた', trans:'关于高速公路建设，赞否意见出现分歧。', point:'〜については：关于……（话题提出），比〜について更强调对比', level:'n3', freq:1, ex_jp:'高速道路の建設については、賛否が分かれた。'},
+  {id:'g9', vocabId:1,  sentence:'美しい情景が目に浮かんだ。', kana:'うつくしい じょうけい が め に うかんだ', trans:'美丽的情景浮现在眼前。', point:'〜が目に浮かぶ：某事物在脑海/眼前浮现，固定表达', level:'n3', freq:1, ex_jp:'美しい情景が目に浮かんだ。'},
+  {id:'g10', vocabId:9, sentence:'落ち葉が積もった道を歩いた。', kana:'おちば が つもった みち を あるいた', trans:'走在落叶堆积的路上。', point:'た形＋名詞：完成状态的定语从句修饰名词', level:'n5', freq:1, ex_jp:'落ち葉が積もった道を歩いた。'},
   /* 第二次试卷语法 */
-  {id:'g11', sentence:'私が仕事の話を始めたら、途端に機嫌が悪くなった。', kana:'わたし が しごと の はなし を はじめたら とたんに きげん が わるくなった', trans:'我一开始说工作的事，马上就变得心情不好了。', point:'〜た途端に：一……就立刻……，前一动作完成后紧接发生，含意外感', level:'n3', freq:1, ex_jp:'仕事の話を始めたら、途端に機嫌が悪くなった。'},
-  {id:'g12', sentence:'研修生を受け入れるためには、住居を確保する必要がある。', kana:'けんしゅうせい を うけいれる ためには じゅうきょ を かくほ する ひつよう が ある', trans:'为了接收实习生，有必要确保住所。', point:'〜ためには〜必要がある：为了……有必要……，目的与义务的固定表达', level:'n3', freq:1, ex_jp:'研修生を受け入れるためには、住居を確保する必要がある。'},
-  {id:'g13', sentence:'災害に備えることはとても大切だ。', kana:'さいがい に そなえる こと は とても たいせつ だ', trans:'为灾害做准备是非常重要的。', point:'〜に備える：为……做准备，固定搭配；〜ことは〜だ：名词化后作主语', level:'n3', freq:1, ex_jp:'災害に備えることはとても大切だ。'},
-  {id:'g14', sentence:'このカメラは小型だが、性能が劣っているわけではない。', kana:'この カメラ は こがた だが せいのう が おとって いる わけ では ない', trans:'这款相机虽然小巧，但性能并不差。', point:'〜わけではない：并不是……，委婉否定（高频考点）', level:'n3', freq:2, ex_jp:'小型だが、性能が劣っているわけではない。'},
-  {id:'g15', sentence:'父は手術後、医者も驚くほど劇的に回復した。', kana:'ちち は しゅじゅつご いしゃ も おどろく ほど げきてきに かいふく した', trans:'父亲手术后，恢复得令医生都感到惊讶，堪称戏剧性康复。', point:'〜ほど〜：达到……的程度，表程度之深令人意外', level:'n3', freq:1, ex_jp:'医者も驚くほど劇的に回復した。'},
-  {id:'g16', sentence:'このシステムを利用するには、インターネットに接続しているパソコンが必要です。', kana:'このシステム を りよう する には インターネット に せつぞく している パソコン が ひつよう です', trans:'使用该系统需要连接到网络的电脑。', point:'〜するには〜が必要：为了做……需要……，条件与必要性表达', level:'n3', freq:1, ex_jp:'このシステムを利用するには、接続しているパソコンが必要です。'},
-  {id:'g17', sentence:'会社との交渉の結果、改善してもらえることになった。', kana:'かいしゃ と の こうしょう の けっか かいぜん してもらえる こと に なった', trans:'经过与公司的交涉，最终决定为我们改善。', point:'〜の結果、〜ことになった：经过……的结果，决定……（正式表达）', level:'n3', freq:1, ex_jp:'交渉の結果、改善してもらえることになった。'},
-  {id:'g18', sentence:'顔写真付きの身分証明書を見せてください。', kana:'かおしゃしんつき の みぶんしょうめいしょ を みせて ください', trans:'请出示带有照片的身份证明文件。', point:'〜付き（つき）：附带……的，接名词后表配备/附带某物', level:'n3', freq:1, ex_jp:'顔写真付きの身分証明書を見せてください。'},
-  {id:'g19', sentence:'いつのまにか太陽が昇っていた。', kana:'いつのまにか たいよう が のぼって いた', trans:'不知不觉中太阳已经升起来了。', point:'いつのまにか：不知不觉，固定副词；〜ていた：发现某状态已完成', level:'n3', freq:1, ex_jp:'いつのまにか太陽が昇っていた。'},
-  {id:'g20', sentence:'前田さんがそんなに偉い人だとは知りませんでした。', kana:'まえださん が そんなに えらい ひと だ とは しりませんでした', trans:'没想到前田先生是这么了不起的人。', point:'〜だとは知らなかった：没想到……竟然是，表达意外发现的强调句式', level:'n3', freq:1, ex_jp:'そんなに偉い人だとは知りませんでした。'},
+  {id:'g11', vocabId:37, sentence:'私が仕事の話を始めたら、途端に機嫌が悪くなった。', kana:'わたし が しごと の はなし を はじめたら とたんに きげん が わるくなった', trans:'我一开始说工作的事，马上就变得心情不好了。', point:'〜た途端に：一……就立刻……，前一动作完成后紧接发生，含意外感', level:'n3', freq:1, ex_jp:'仕事の話を始めたら、途端に機嫌が悪くなった。'},
+  {id:'g12', vocabId:42, sentence:'研修生を受け入れるためには、住居を確保する必要がある。', kana:'けんしゅうせい を うけいれる ためには じゅうきょ を かくほ する ひつよう が ある', trans:'为了接收实习生，有必要确保住所。', point:'〜ためには〜必要がある：为了……有必要……，目的与义务的固定表达', level:'n3', freq:1, ex_jp:'研修生を受け入れるためには、住居を確保する必要がある。'},
+  {id:'g13', vocabId:43, sentence:'災害に備えることはとても大切だ。', kana:'さいがい に そなえる こと は とても たいせつ だ', trans:'为灾害做准备是非常重要的。', point:'〜に備える：为……做准备，固定搭配；〜ことは〜だ：名词化后作主语', level:'n3', freq:1, ex_jp:'災害に備えることはとても大切だ。'},
+  {id:'g14', vocabId:54, sentence:'このカメラは小型だが、性能が劣っているわけではない。', kana:'この カメラ は こがた だが せいのう が おとって いる わけ では ない', trans:'这款相机虽然小巧，但性能并不差。', point:'〜わけではない：并不是……，委婉否定（高频考点）', level:'n3', freq:2, ex_jp:'小型だが、性能が劣っているわけではない。'},
+  {id:'g15', vocabId:56, sentence:'父は手術後、医者も驚くほど劇的に回復した。', kana:'ちち は しゅじゅつご いしゃ も おどろく ほど げきてきに かいふく した', trans:'父亲手术后，恢复得令医生都感到惊讶，堪称戏剧性康复。', point:'〜ほど〜：达到……的程度，表程度之深令人意外', level:'n3', freq:1, ex_jp:'医者も驚くほど劇的に回復した。'},
+  {id:'g16', vocabId:57, sentence:'このシステムを利用するには、インターネットに接続しているパソコンが必要です。', kana:'このシステム を りよう する には インターネット に せつぞく している パソコン が ひつよう です', trans:'使用该系统需要连接到网络的电脑。', point:'〜するには〜が必要：为了做……需要……，条件与必要性表达', level:'n3', freq:1, ex_jp:'このシステムを利用するには、接続しているパソコンが必要です。'},
+  {id:'g17', vocabId:49, sentence:'会社との交渉の結果、改善してもらえることになった。', kana:'かいしゃ と の こうしょう の けっか かいぜん してもらえる こと に なった', trans:'经过与公司的交涉，最终决定为我们改善。', point:'〜の結果、〜ことになった：经过……的结果，决定……（正式表达）', level:'n3', freq:1, ex_jp:'交渉の結果、改善してもらえることになった。'},
+  {id:'g18', vocabId:47, sentence:'顔写真付きの身分証明書を見せてください。', kana:'かおしゃしんつき の みぶんしょうめいしょ を みせて ください', trans:'请出示带有照片的身份证明文件。', point:'〜付き（つき）：附带……的，接名词后表配备/附带某物', level:'n3', freq:1, ex_jp:'顔写真付きの身分証明書を見せてください。'},
+  {id:'g19', vocabId:40, sentence:'いつのまにか太陽が昇っていた。', kana:'いつのまにか たいよう が のぼって いた', trans:'不知不觉中太阳已经升起来了。', point:'いつのまにか：不知不觉，固定副词；〜ていた：发现某状态已完成', level:'n3', freq:1, ex_jp:'いつのまにか太陽が昇っていた。'},
+  {id:'g20', vocabId:36, sentence:'前田さんがそんなに偉い人だとは知りませんでした。', kana:'まえださん が そんなに えらい ひと だ とは しりませんでした', trans:'没想到前田先生是这么了不起的人。', point:'〜だとは知らなかった：没想到……竟然是，表达意外发现的强调句式', level:'n3', freq:1, ex_jp:'そんなに偉い人だとは知りませんでした。'},
 ];
 
 /* ─── TABS ─── */
@@ -838,22 +840,28 @@ function jumpStudy(id){
 function renderGrammar(){
   const wrap=document.getElementById('gm-table-wrap');
   const lvStyle2={n5:'background:#fdf7e4;color:#7a5e18',n4:'background:#e6f0fa;color:#1c4478',n3:'background:#e7f2eb;color:#2d5a3d',n2:'background:#fdf0ec;color:#8b3a2a',n1:'background:#f3edf8;color:#5a2d7a'};
+  const vocabMap=Object.fromEntries(vocab.map(w=>[w.id,w]));
   const src=GRAMMAR_DATA.filter(g=>{
+    const w=vocabMap[g.vocabId];
+    if(!w||!w.gm) return false;
     const lm=gmFilter==='all'?true:gmFilter==='high'?g.freq>=2:g.level===gmFilter;
     const sm=!gmSearch||g.sentence.includes(gmSearch)||g.trans.includes(gmSearch)||g.point.includes(gmSearch);
     return lm&&sm;
   });
   if(!src.length){ wrap.innerHTML='<div class="empty"><div style="font-size:28px;margin-bottom:8px">🔍</div>没有匹配的语法</div>'; return; }
   if(!document.getElementById('gm-tbody')){
-    wrap.innerHTML=`<table class="vtable" id="gm-table"><thead><tr><th style="min-width:200px">例句（原文）</th><th style="min-width:140px">中文翻译</th><th style="min-width:180px">重点语法</th><th style="width:52px">等级</th><th style="width:64px">发音</th><th style="width:64px">高频</th></tr></thead><tbody id="gm-tbody"></tbody></table>`;
+    wrap.innerHTML=`<table class="vtable" id="gm-table"><thead><tr><th style="width:40px;text-align:center">#</th><th style="min-width:200px">例句（原文）</th><th style="min-width:140px">中文翻译</th><th style="min-width:180px">重点语法</th><th style="width:52px">等级</th><th style="width:72px">批次</th><th style="width:64px">发音</th><th style="width:64px">高频</th></tr></thead><tbody id="gm-tbody"></tbody></table>`;
   }
-  document.getElementById('gm-tbody').innerHTML=src.map(g=>{
+  document.getElementById('gm-tbody').innerHTML=src.map((g,i)=>{
+    const w=vocabMap[g.vocabId];
     const lv=lvStyle2[g.level]||'';
     const exSafe=(g.ex_jp||'').replace(/'/g,"\\'");
     const freqCell=g.freq>=2
       ? `<span class="freq-badge">⭐ ${g.freq}次</span>`
       : `<span style="font-size:11px;color:var(--text3)">1次</span>`;
-    return `<tr>
+    const batchHtml=w?getBatch(w.src):'';
+    return `<tr onclick="jumpStudy(${g.vocabId})" title="点击跳转到「${w?w.kanji:''}」卡片" style="cursor:pointer">
+      <td style="text-align:center;color:var(--text3);font-size:12px;font-family:'DM Mono',monospace">${i+1}</td>
       <td>
         <div class="gm-sentence">${g.sentence}</div>
         <div class="gm-kana">${g.kana}</div>
@@ -861,7 +869,8 @@ function renderGrammar(){
       <td style="font-size:12px;color:var(--text2);line-height:1.6">${g.trans}</td>
       <td><div class="gm-point"><strong>${g.point.split('：')[0]}：</strong>${g.point.split('：').slice(1).join('：')}</div></td>
       <td><span class="vt-lv" style="${lv}">${(g.level||'').toUpperCase()}</span></td>
-      <td><button class="vt-spk" onclick="speak('${exSafe}')" title="朗读例句">🔊</button></td>
+      <td>${batchHtml}</td>
+      <td><button class="vt-spk" onclick="event.stopPropagation();speak('${exSafe}')" title="朗读例句">🔊</button></td>
       <td style="text-align:center">${freqCell}</td>
     </tr>`;
   }).join('');
