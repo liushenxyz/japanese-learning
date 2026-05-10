@@ -186,35 +186,6 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 .vt-batch.bm { background: var(--gold-light); color: var(--gold); }
 .empty { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 14px; }
 
-/* upload */
-.upload-page { max-width: 680px; margin: 0 auto; padding: 20px 20px 60px; display: flex; flex-direction: column; gap: 18px; }
-.dropzone { border: 2px dashed var(--border2); border-radius: var(--r-lg); padding: 52px 32px; text-align: center; cursor: pointer; background: var(--surface); transition: all .2s; }
-.dropzone:hover, .dropzone.drag { border-color: var(--accent); background: var(--accent-light); }
-.dz-icon { font-size: 36px; margin-bottom: 10px; }
-.dz-title { font-size: 15px; font-weight: 500; margin-bottom: 5px; }
-.dz-sub { font-size: 12px; color: var(--text3); }
-#file-inp { display: none; }
-.prev-img { width: 100%; max-height: 300px; object-fit: contain; border-radius: var(--r-md); border: 1px solid var(--border); display: none; }
-.ai-go { height: 44px; border-radius: var(--r-sm); border: none; background: var(--accent); color: white; font-size: 14px; font-weight: 500; cursor: pointer; font-family: 'Noto Sans JP', sans-serif; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .15s; }
-.ai-go:hover { background: var(--accent-h); }
-.ai-go:disabled { background: var(--text3); cursor: not-allowed; }
-.ldbar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; display: none; }
-.ldfill { height: 100%; background: var(--accent); border-radius: 2px; animation: ld 1.8s ease-in-out infinite; }
-@keyframes ld { 0%{width:0;margin-left:0} 50%{width:65%;margin-left:0} 100%{width:0;margin-left:100%} }
-.result-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; display: none; }
-.rb-head { background: var(--accent-light); padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-.rb-title { font-size: 13px; font-weight: 500; color: var(--accent); }
-.rb-body { padding: 18px; }
-.astream { font-size: 13px; color: var(--text2); line-height: 1.85; white-space: pre-wrap; max-height: 260px; overflow-y: auto; padding: 2px 0 10px; }
-.ew { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
-.ew:last-of-type { border-bottom: none; }
-.ew-chk { width: 17px; height: 17px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
-.ew-k { font-family: 'Noto Sans JP', sans-serif; font-size: 15px; font-weight: 700; min-width: 72px; }
-.ew-kn { font-size: 11px; color: var(--accent); }
-.ew-t { font-size: 12px; color: var(--text2); flex: 1; }
-.ew-new { font-size: 10px; background: var(--accent-light); color: var(--accent); padding: 1px 6px; border-radius: 8px; font-weight: 500; }
-.add-btn { width: 100%; height: 38px; border-radius: var(--r-sm); border: 1px solid var(--accent); background: white; color: var(--accent); font-size: 13px; font-weight: 500; cursor: pointer; margin-top: 14px; font-family: 'Noto Sans JP', sans-serif; transition: all .15s; }
-.add-btn:hover { background: var(--accent); color: white; }
 
 /* toast */
 .toast { position: fixed; bottom: 22px; right: 22px; background: var(--text); color: white; padding: 9px 16px; border-radius: var(--r-sm); font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 999; }
@@ -302,9 +273,6 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   #gm-table th:nth-child(8),
   #gm-table td:nth-child(8) { display: none; }
 
-  /* upload */
-  .upload-page { padding: 12px 12px 48px; }
-  .dropzone { padding: 36px 20px; }
 }
 </style>
 </head>
@@ -319,7 +287,6 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
   <button class="stab on" onclick="gotoTab('study',this)">🃏 卡片学习</button>
   <button class="stab" onclick="gotoTab('list',this)">📚 词库浏览</button>
   <button class="stab" onclick="gotoTab('grammar',this)">📖 语法重点</button>
-  <button class="stab" onclick="gotoTab('upload',this)">📷 AI 提取</button>
 </div>
 
 <!-- STUDY -->
@@ -469,31 +436,6 @@ body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); color: va
 </div>
 </div>
 
-<!-- UPLOAD -->
-<div id="tab-upload" class="tab-panel">
-<div class="upload-page">
-  <div class="dropzone" id="dropzone"
-    onclick="document.getElementById('file-inp').click()"
-    ondragover="doDragOver(event)" ondrop="doDrop(event)"
-    ondragleave="this.classList.remove('drag')">
-    <div class="dz-icon">📄</div>
-    <div class="dz-title">点击上传或拖拽题目图片</div>
-    <div class="dz-sub">支持 JPG · PNG · HEIC · 可直接拍照上传</div>
-    <input type="file" id="file-inp" accept="image/*" capture="environment" onchange="onFileSelect(event)">
-  </div>
-  <img id="prev-img" class="prev-img" alt="预览">
-  <div class="ldbar" id="ldbar"><div class="ldfill"></div></div>
-  <button class="ai-go" id="ai-btn" onclick="runAI()" disabled><span>🤖</span> AI 解析题目 · 提取词汇</button>
-  <div class="result-box" id="result-box">
-    <div class="rb-head"><span>✨</span><span class="rb-title">解析完成 — 选择词汇加入词库</span></div>
-    <div class="rb-body">
-      <div class="astream" id="astream"></div>
-      <div id="ew-list"></div>
-      <button class="add-btn" onclick="addToVocab()">将选中词汇加入词库</button>
-    </div>
-  </div>
-</div>
-</div>
 
 <div class="toast" id="toast"></div>
 
@@ -575,7 +517,6 @@ let posFilter = 'all', listLF = 'all', listSearch = '';
 let gmFilter = 'all', gmSearch = '';
 let masteredSet = new Set(JSON.parse(localStorage.getItem('jp_mastered')||'[]'));
 let srsState = JSON.parse(localStorage.getItem('jp_srs')||'{}');
-let uploadedFile = null, extractedWords = [];
 
 /* ─── GRAMMAR DATA ─── */
 const GRAMMAR_DATA = [
@@ -878,60 +819,6 @@ function renderGrammar(){
 function filterGrammar(q){ gmSearch=q; renderGrammar(); }
 function setGF(f,btn){ gmFilter=f; document.querySelectorAll('#tab-grammar .lf-btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderGrammar(); }
 
-/* ─── UPLOAD ─── */
-function doDragOver(e){ e.preventDefault(); document.getElementById('dropzone').classList.add('drag'); }
-function doDrop(e){ e.preventDefault(); document.getElementById('dropzone').classList.remove('drag'); const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) setFile(f); }
-function onFileSelect(e){ const f=e.target.files[0]; if(f) setFile(f); }
-function setFile(f){
-  uploadedFile=f;
-  const r=new FileReader();
-  r.onload=ev=>{ const img=document.getElementById('prev-img'); img.src=ev.target.result; img.style.display='block'; };
-  r.readAsDataURL(f);
-  document.getElementById('ai-btn').disabled=false;
-  document.getElementById('result-box').style.display='none';
-}
-async function runAI(){
-  if(!uploadedFile) return;
-  const btn=document.getElementById('ai-btn'), ldbar=document.getElementById('ldbar'), rbox=document.getElementById('result-box'), as=document.getElementById('astream'), ewl=document.getElementById('ew-list');
-  btn.disabled=true; btn.innerHTML='<span>⏳</span> AI 解析中…';
-  ldbar.style.display='block'; rbox.style.display='none'; as.textContent=''; ewl.innerHTML=''; extractedWords=[];
-  const b64=await new Promise(res=>{ const r=new FileReader(); r.onload=e=>res(e.target.result.split(',')[1]); r.readAsDataURL(uploadedFile); });
-  const mt=uploadedFile.type||'image/jpeg';
-  const sys=`你是JLPT考试分析专家。用户上传日语题目图片。完成：
-【题目解析】逐题分析：正确答案、关键语法点（标注N级别）、核心词汇。
-【词汇提取】提取所有重要词汇，JSON数组放在 <VOCAB_JSON></VOCAB_JSON> 标签之间：
-[{"kanji":"漢字","kana":"かな","roman":"rōmaji","trans":"中文释义","pos":"词性","pg":"名词|动词|形容词|副词|外来語","level":"n3","src":"来源","ex_jp":"例句日语","ex_kana":"例句假名","ex_roman":"例句罗马音","ex_zh":"例句中文","gm":"语法点（可含<span class=grammar-tag n3>N3</span>标签）"}]
-level只能是n5/n4/n3/n2/n1。只输JSON，不要多余内容。`;
-  try {
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4096,system:sys,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mt,data:b64}},{type:'text',text:'请详细解析图片中的日语题目，提取所有词汇。'}]}]})});
-    const data=await resp.json();
-    ldbar.style.display='none';
-    const full=(data.content||[]).map(c=>c.text||'').join('');
-    as.textContent=full.split('<VOCAB_JSON>')[0].trim();
-    const jm=full.match(/<VOCAB_JSON>([\s\S]*?)<\/VOCAB_JSON>/);
-    if(jm){ try{ extractedWords=JSON.parse(jm[1].trim()); renderEW(); }catch(e){} }
-    rbox.style.display='block'; btn.innerHTML='<span>✅</span> 解析完成'; btn.disabled=false;
-  } catch(err){
-    ldbar.style.display='none'; as.textContent='解析出错：'+err.message;
-    rbox.style.display='block'; btn.innerHTML='<span>🤖</span> AI 解析题目 · 提取词汇'; btn.disabled=false;
-  }
-}
-function renderEW(){
-  const existing=new Set(vocab.map(w=>w.kanji));
-  const ewl=document.getElementById('ew-list');
-  if(!extractedWords.length){ ewl.innerHTML='<div style="color:var(--text3);font-size:13px;padding:8px 0">未提取到词汇</div>'; return; }
-  ewl.innerHTML=extractedWords.map((w,i)=>{
-    const isNew=!existing.has(w.kanji);
-    return `<div class="ew"><input type="checkbox" class="ew-chk" id="ew${i}" ${isNew?'checked':''}><div><div class="ew-k">${w.kanji}</div><div class="ew-kn">${w.kana}</div></div><div class="ew-t">${w.trans}</div>${isNew?'<span class="ew-new">新词</span>':'<span style="font-size:10px;color:var(--text3)">已有</span>'}</div>`;
-  }).join('');
-}
-function addToVocab(){
-  const existing=new Set(vocab.map(w=>w.kanji));
-  let added=0;
-  extractedWords.forEach((w,i)=>{ const cb=document.getElementById('ew'+i); if(cb&&cb.checked&&!existing.has(w.kanji)){ vocab.push({...w,id:Date.now()+i}); added++; } });
-  if(added){ updateStats(); buildDeck(); showToast(`✅ 已添加 ${added} 个词汇`); }
-  else showToast('ℹ️ 没有新词汇被添加');
-}
 
 /* ─── SRS ─── */
 function getSRS(id){ return srsState[id]||{interval:0,ef:2.5,reps:0,due:0}; }
